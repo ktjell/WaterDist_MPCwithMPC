@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Mar 13 14:21:03 2023
+Created on Tue Mar 14 09:25:56 2023
 
 @author: kst
 """
@@ -23,17 +23,15 @@ T = np.mod(simu.TIME, simu.TIME[simu.M])
 steps = np.where(T[:simu.ite] == [0, 6*60, 12*60, 18*60])[0]
 ticks = np.tile(np.array(['00', '06', '12', '18']),int(len(steps)/4))
 
-f, ax = plt.subplots(5, sharex=True, figsize = (15,12))
+f, ax = plt.subplots(3, sharex=True, figsize = (15,9))
+f.suptitle('On average 10 iterations of MofM')
 
+
+ax[0].set_ylabel('Tank level [m]')
 ax[0].set_xticks(simu.TIME[steps].flatten(),ticks)
-ax[0].set_ylabel('Encrypted Cloud')
-# line_dots1 = ax[0].plot([],[])
-# line_dots2 = ax[0].plot([],[])
-
-ax[3].set_ylabel('Tank level [m]')
 # line_h, = ax[1].plot([],[], label='Level in tank')
-ax[3].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*tank.hmin, 'r', linestyle = 'dashed')
-ax[3].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*tank.hmax, 'r', linestyle = 'dashed')
+ax[0].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*tank.hmin, 'r', linestyle = 'dashed')
+ax[0].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*tank.hmax, 'r', linestyle = 'dashed')
 
 # line_q1, = ax[1].plot([], [], label = 'q1')
 # line_q2, = ax[1].plot([], [], label = 'q2')
@@ -47,15 +45,15 @@ ax[2].set_ylabel('Flow pump 2 [$m^3/h$]')
 ax[2].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*sups[1].Qmax, 'r', linestyle = 'dashed')
 ax[2].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*0, 'r', linestyle = 'dashed')
 # ax[2].set_ylabel('Extraction per day')
-# line_Extq1, = ax[2].plot([], [],)
-ax[4].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*sups[0].Vmax, 'r', linestyle = 'dashed')
-# line_Extq2, = ax[2].plot([], [],)
-# ax[2].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*sups[1].Vmax, 'b', linestyle = 'dashed')
-ax[4].set_ylabel('Extraction per day')
-# line_p1, = ax[3].plot([], [],)
-# line_p2, = ax[3].plot([], [],)
-# ax[3].set_xlabel('Time')
-# ax[3].set_ylabel('Pressure')
+# # line_Extq1, = ax[2].plot([], [],)
+# ax[4].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*sups[0].Vmax, 'b', linestyle = 'dashed')
+# # line_Extq2, = ax[2].plot([], [],)
+# # ax[2].plot(simu.TIME[:simu.ite],np.ones(simu.ite)*sups[1].Vmax, 'b', linestyle = 'dashed')
+# ax[4].set_ylabel('Extraction per day')
+# # line_p1, = ax[3].plot([], [],)
+# # line_p2, = ax[3].plot([], [],)
+# # ax[3].set_xlabel('Time')
+# # ax[3].set_ylabel('Pressure')
 # f.xticks(steps, ticks)#, rotation='vertical')
 f.tight_layout()
 
@@ -63,33 +61,35 @@ f.tight_layout()
 # function that draws each frame of the animation
 def animate(i):
     x0.append(simu.TIME[i])
-    y0.append(dots1[i])
-    y1.append(dots2[i])
-    y2.append(h[i])
-    y3.append(q1[i])
-    y4.append(q2[i])
-    y5.append(cum_q1[i])
-    y6.append(cum_q2[i])
-    y7.append(simu.d[i])
+    # y0.append(dots1[i])
+    # y1.append(dots2[i])
+    y2.append(hS[i])
+    y3.append(q1S[i])
+    y4.append(q2S[i])
+    y5.append(q1E[i])
+    y6.append(q2E[i])
+    y7.append(hE[i])
     
     # ax.clear()
-    ax[0].scatter(x0, y0, c = col_names[0])
-    ax[0].scatter(x0,y1, c= col_names[1])
-    ax[3].plot(x0, y2, col_names[0])
-    ax[1].plot(x0,y3, col_names[2])
+    # ax[0].scatter(x0, y0, c = col_names[0])
+    # ax[0].scatter(x0,y1, c= col_names[1])
+    ax[0].plot(x0, y2, col_names[0], linewidth = 0.9, label = 'Separable')
+    ax[0].plot(x0,y7, col_names[2], linewidth = 0.9, label = 'Global')
     # ax[2].plot(x0, y7, col_names[1], linewidth = 0.5)
-    ax[2].plot(x0,y4,col_names[2])
-    # ax[3].plot(x0, y7, col_names[1], linewidth = 0.5)
-    ax[4].plot(x0,y5,col_names[0])
-    ax[4].plot(x0,y6,col_names[1])
+    ax[1].plot(x0,y3,col_names[0], linewidth = 0.9)
+    ax[1].plot(x0, y5, col_names[2], linewidth = 0.9)
+    ax[2].plot(x0,y4,col_names[0], linewidth = 0.9)
+    ax[2].plot(x0,y6,col_names[2], linewidth = 0.9)
     # ax.set_xlim([0,])
     # ax.set_ylim([tank.hmin,tank.hmax])
+    if i <= 0:
+        f.legend()
 
-ani = FuncAnimation(f, animate, frames=len(q1), interval=150, repeat=False)
+ani = FuncAnimation(f, animate, frames=len(q1), interval=50, repeat=False)
 
 plt.show()
 # # # saves the animation in our desktop
-# ani.save('FullPlotite3days.mp4', writer = 'ffmpeg', fps = 5)
+# ani.save('Comparison10iterations3days.mp4', writer = 'ffmpeg', fps = 30)
 
 
 # # create empty lists for the x and y data

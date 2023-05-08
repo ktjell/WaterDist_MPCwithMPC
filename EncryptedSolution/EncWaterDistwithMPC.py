@@ -33,7 +33,7 @@ def opti(sup, i, g, c, h0, lamb, rho, Uglobal):
           
     constr = [U[:,i] == u, 
               U >= np.zeros((simu.M,simu.N)), 
-              u <= np.ones(simu.M)*sup.Qmax,
+              U[:,i] <= np.ones(simu.M)*sup.Qmax,
               cp.sum(u) <= sups[i].Vmax,
               np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) >= np.ones((simu.M,1))*tank.hmin*tank.area,
               np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) <= np.ones((simu.M,1))*tank.hmax*tank.area
@@ -46,11 +46,12 @@ def opti(sup, i, g, c, h0, lamb, rho, Uglobal):
     return u.value.reshape((simu.M,)), U.value
 
 ## NOTE to self, pr'v at genbruge lambda og sæt ite i opti til at stoppe når 
+## PRøv at fjerne lille u fro opti problem
 def optiSeparable(sups, g, c, h0, lambPrev, Uglobal):
-    ite = 5
+    ite = 12
     
     lamb = np.zeros((ite+1, simu.N, simu.M, simu.N))
-    lamb[0,:,:,:] = lambPrev
+    lamb[0,:,:,:] = lambPrev*0.9
     LAMB = np.zeros((ite,simu.N))
     
     Utemp = np.zeros((ite, simu.N, simu.M, simu.N))
@@ -58,8 +59,12 @@ def optiSeparable(sups, g, c, h0, lambPrev, Uglobal):
             
     utemp = np.zeros((ite, simu.N, simu.M))
 
-    rho = 2
-    for j in range(ite):
+    rho = 3
+    # for j in range(ite):
+    acc = True
+    j = 0
+    while acc and j < ite:
+        print(j)
         Uavr = np.zeros((simu.M,simu.N))
         for i in range(simu.N):
             
@@ -67,18 +72,23 @@ def optiSeparable(sups, g, c, h0, lambPrev, Uglobal):
             utemp[j,i,:] = u
             Utemp[j,i,:,:] = U
             Uavr += U + 1/rho * lamb[j,i,:,:]
-
+        UglobalTemp = Uglobal
         Uglobal = 1/simu.N * Uavr    
 
         for i in range(simu.N):
             lamb[j+1,i,:,:] = lamb[j,i,:,:] + rho*( Utemp[j,i,:,:] - Uglobal )
             LAMB[j,i] = np.linalg.norm(lamb[j+1,i,:,:],2)
     # print(Uglobal)
+        j+=1
+        # print(Uglobal- UglobalTemp)
+        # print((np.linalg.norm(Uglobal - UglobalTemp, 2)))
+        acc = (np.linalg.norm(Uglobal - UglobalTemp, 2) > 5)
     
     for i in range(simu.N):
-        plt.plot(LAMB[:,i])
+        plt.plot(LAMB[:j,i])
+    
         
-    return Uglobal[0,:], lamb[-1,:,:,:], Uglobal
+    return Uglobal[0,:], lamb[j,:,:,:], Uglobal
 
 ## Simulation ###################################
 q1,q2 = np.zeros(simu.ite),np.zeros(simu.ite)     #The optimized flows from pumps
