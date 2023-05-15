@@ -8,7 +8,7 @@ Created on Fri May 12 10:54:19 2023
 
 import numpy as np
 from threading import Thread
-from ip_confic import ipconfigs as ips
+from ip_config import ipconfigs as ips
 from parameters import tank, simu
 from communication_setup import com_functions
 from plotting import plotting
