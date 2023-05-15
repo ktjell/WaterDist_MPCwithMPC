@@ -12,9 +12,15 @@ from threading import Thread
 import tcp_socket as sock
 from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
-from parameters import sups, tank, simu, E
+from parameters import sups, tank, simu
 from communication_setup import com_functions
 import cvxpy as cp
+
+## Cost function
+def E(x, r, Dz, p0):
+    eta = 0.7
+    return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
+
 
 class loc_ctr(Thread):
     def __init__(self, p_nr, rec_q):

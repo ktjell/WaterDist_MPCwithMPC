@@ -7,7 +7,6 @@ Created on Mon Mar 13 12:03:26 2023
 """
 
 import h5py
-import cvxpy as cp
 import numpy as np
 
 
@@ -71,12 +70,6 @@ start = np.datetime64('2023-01-01T00:00') #Chose some starting point
 simu.TIMEformat = start + simu.TIME.astype('timedelta64[m]')
 c0 = np.array(mat2.get('price')) / 1000 #Electricity price hour for hour per kWh
 simu.c = c0[::sample_hourly]#np.repeat(c0, 4) #Electricity prices every hour (so addapt to other dt when necessary)
-
-
-## Cost function
-def E(x, r, Dz, p0):
-    eta = 0.7
-    return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
 
 
 simu.M = int(24*60*60 / simu.dt )      #24 hours in seconds divided into M steps by dt
