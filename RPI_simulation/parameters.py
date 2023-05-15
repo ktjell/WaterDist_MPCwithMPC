@@ -8,7 +8,7 @@ Created on Mon Mar 13 12:03:26 2023
 
 import h5py
 import cvxpy as cp
-import numpy as npß
+import numpy as np
 
 
 ## Parameters ####################
