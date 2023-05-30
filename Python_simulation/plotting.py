@@ -8,10 +8,10 @@ Created on Mon Mar 13 12:14:49 2023
 import matplotlib.pylab as plt
 import matplotlib.dates as md
 import numpy as np
-import sys
-sys.path.append('../Python_simulation')
-from Python_simulation.parameters import sups, tank, simu
-# from parameters import simu, tank, sups
+# import sys
+# sys.path.append('../Python_simulation')
+# from Python_simulation.parameters import sups, tank, simu
+from parameters import simu, tank, sups
 
 class plotting:
     def __init__(self, name):
