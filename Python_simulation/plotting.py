@@ -26,7 +26,7 @@ class plotting:
         self.f, self.ax = plt.subplots(4, sharex=True, figsize = (15,9))
         plt.xticks(rotation=45)
         loc = md.AutoDateLocator(interval_multiples=True) # this locator puts ticks at regular intervals
-        self.ax[0].xaxis.set_major_formatter(md.ConciseDateFormatter(loc)) #md.DateFormatter('%H:%M'))
+        # self.ax[0].xaxis.set_major_formatter(md.ConciseDateFormatter(loc)) #md.DateFormatter('%H:%M'))
         self.ax[0].xaxis.set_major_locator(loc)
         minloc = md.AutoDateLocator(minticks=2, maxticks=5)
         self.ax[0].xaxis.set_minor_locator(minloc)
