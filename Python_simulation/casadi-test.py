@@ -8,10 +8,10 @@ Created on Thu May 25 09:02:49 2023
 
 import casadi as ca
 import numpy as np
-import sys
-sys.path.append('../Python_simulation')
-from Python_simulation.parameters import sups, tank, simu
-from Python_simulation.plotting import plotting
+# import sys
+# sys.path.append('../Python_simulation')
+from parameters import sups, tank, simu
+from plotting import plotting
 
 
 
