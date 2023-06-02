@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 25 09:02:49 2023
+Created on Tue May 30 19:30:34 2023
 
 @author: kst
 """
 
-import casadi as ca
+
+from gekko import GEKKO
 import numpy as np
 # import sys
 # sys.path.append('../Python_simulation')
@@ -23,40 +24,50 @@ def E(x, r, Dz, p0):
 ## MPC optimization #########################
 def opti(sups, g, c, h0, extr):
     kappa = 10000
-    opti = ca.Opti()
-    U = opti.variable(simu.M, simu.N)
+    #Initialize Model
+    m = GEKKO()
+
+    #initialize variables
+    U = m.Array(m.Var,(simu.M, simu.N), lb = 0.0 )
+
     A = np.tril(np.ones((simu.M,simu.M)))
     cost = 0
-    constr = [ ca.vec(U) >= 0,
-              ca.vec(np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g)) >= tank.hmin*tank.area,
-              ca.vec(np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g)) <= tank.hmax*tank.area
-              ]
+    # constr = [ 
+    #           m.Equation( np.ones((simu.M,1))*(h0*tank.area) + np.dot(A, np.dot( U, np.ones((simu.N,1)))) - g >= tank.hmin*tank.area),
+    #           m.Equation( np.ones((simu.M,1))*(h0*tank.area) + np.dot(A, np.dot( U, np.ones((simu.N,1)))) - g <= tank.hmax*tank.area)
+    #           ]
+    constr = [ ]
+              #  m.Equation( np.sum(U)  >= 3)#np.ones((simu.M,1))*tank.hmin*tank.area)
+              # # m.Equation( np.ones((simu.M,1))*(h0*tank.area) + np.dot(A, np.dot( U, np.ones((simu.N,1)))) - g <= tank.hmax*tank.area)
+              # ]
     
     for i in range(simu.N):
         for k in range(simu.M):
-            cost += c[k] * E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
-                 + sups[i].K*U[k,i] 
-        for k in range(1, simu.M):
-            cost += (U[k,i] - U[k-1,i])**2
+            cost +=  sups[i].K*U[k,i] +c[k] #* E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
+                  
+        # for k in range(1, simu.M):
+        #     cost += (U[k,i] - U[k-1,i])**2
         # cost += (ca.norm_2(U[:,i]))**2
       
-        constr.extend([
-                    ca.vec(U[:,i]) <= sups[i].Qmax,
-                    ca.cumsum(U[:,i]) <= sups[i].Vmax - extr[:,i] 
-                    # cp.sum(U[:,i]) <= sups[i].Vmax
-                    ])
+        # constr.extend([
+        #             m.Equation(U[:,i] <= sups[i].Qmax),
+        #             m.Equation(np.cumsum(U[:,i]) <= sups[i].Vmax - extr[:,i]) 
+        #             # cp.sum(U[:,i]) <= sups[i].Vmax
+        #             ])
 
-    cost += kappa* ca.norm_2(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g))**2
+    # cost += kappa* np.norm(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g),2)**2
     
-    
-    opti.minimize(cost)
-    opti.subject_to(constr)
-    opti.solver('sqpmethod')
-    sol = opti.solve()#solver = cp.MOSEK)
-    
+    # m.Equations(constr)
+    m.Obj(cost)
+    #Set global options
+    m.options.IMODE = 3 #steady state optimization
+
+    #Solve simulation
+    m.solve(disp = False)
+
     # status = problem.status
-
-    return sol.value(U)
+    
+    return np.array([U[0,0][0], U[0,1][0]])
 
        
 ## Simulation and plotting ###################################
@@ -79,9 +90,9 @@ for k in range(0,simu.ite):
         
     
         U = opti(sups, simu.d[k:k+simu.M], simu.c[k:k+simu.M], h[k], Qextr)
-        q[ k,:] = U[0,:]        #Delivered water from pump 1 and 2
-        qE[k,:] = U[0,:]
-        Q = U[0,:]
+        q[ k,:] = U        #Delivered water from pump 1 and 2
+        qE[k,:] = U
+        Q = U
         #Calculate cummulated consumption for last 23 hours to use at next iteration
         prevq = q[max(k-22,0):k+1, :]
         prevq_pad = np.pad(prevq, ((simu.M-1 - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
