@@ -13,7 +13,7 @@ import numpy as np
 # sys.path.append('../Python_simulation')
 from parameters import sups, tank, simu
 from plotting import plotting
-
+import matplotlib.pylab as plt
 
 
 def E(x, r, Dz, p0):
@@ -25,49 +25,72 @@ def E(x, r, Dz, p0):
 def opti(sups, g, c, h0, extr):
     kappa = 10000
     #Initialize Model
-    m = GEKKO()
+    m = GEKKO(remote = False)
 
     #initialize variables
     U = m.Array(m.Var,(simu.M, simu.N), lb = 0.0 )
+    for i in range(simu.M):
+        U[i,0].UPPER = sups[0].Qmax
+        U[i,1].UPPER = sups[1].Qmax
+    V = m.Array(m.Var, (simu.M), lb = tank.hmin*tank.area, ub = tank.hmax*tank.area)
 
-    A = np.tril(np.ones((simu.M,simu.M)))
-    cost = 0
-    # constr = [ 
-    #           m.Equation( np.ones((simu.M,1))*(h0*tank.area) + np.dot(A, np.dot( U, np.ones((simu.N,1)))) - g >= tank.hmin*tank.area),
-    #           m.Equation( np.ones((simu.M,1))*(h0*tank.area) + np.dot(A, np.dot( U, np.ones((simu.N,1)))) - g <= tank.hmax*tank.area)
-    #           ]
-    constr = [ ]
-              #  m.Equation( np.sum(U)  >= 3)#np.ones((simu.M,1))*tank.hmin*tank.area)
-              # # m.Equation( np.ones((simu.M,1))*(h0*tank.area) + np.dot(A, np.dot( U, np.ones((simu.N,1)))) - g <= tank.hmax*tank.area)
-              # ]
+    m.Equation(V[0] == h0*tank.area)
     
+    for i in range(simu.M-1):
+        m.Equation(V[i+1] == V[i] + m.sum(U[i,:]) - g[i][0])
+
+
+
+    m.Equation(U[0,0] <= sups[0].Vmax - extr[0,0])
+    m.Equation(U[0,1] <= sups[1].Vmax - extr[0,1])
+    cost = 0
     for i in range(simu.N):
         for k in range(simu.M):
-            cost +=  sups[i].K*U[k,i] +c[k] #* E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
-                  
-        # for k in range(1, simu.M):
-        #     cost += (U[k,i] - U[k-1,i])**2
-        # cost += (ca.norm_2(U[:,i]))**2
-      
-        # constr.extend([
-        #             m.Equation(U[:,i] <= sups[i].Qmax),
-        #             m.Equation(np.cumsum(U[:,i]) <= sups[i].Vmax - extr[:,i]) 
-        #             # cp.sum(U[:,i]) <= sups[i].Vmax
-        #             ])
+            cost +=  c[k][0]* E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
+                 + sups[i].K*U[k,i] 
+            
+            
+        for k in range(1, simu.M):
+            cost += (U[k,i] - U[k-1,i])**2
+            m.Equation(m.sum(U[:k,i]) <= sups[i].Vmax - extr[k,i])
+        # m.Equation(m.sum(U[:,i]) <= sups[i].Vmax)
 
-    # cost += kappa* np.norm(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g),2)**2
+    cost += kappa * (V[0] - V[-1])**2
+    # cost += kappa* np.linalg.norm(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g),2)**2
     
     # m.Equations(constr)
     m.Obj(cost)
     #Set global options
     m.options.IMODE = 3 #steady state optimization
-
+    m.options.DIAGLEVEL = 1
     #Solve simulation
     m.solve(disp = False)
-
-    # status = problem.status
     
-    return np.array([U[0,0][0], U[0,1][0]])
+    #test plot
+    # plt.plot(U[:,0])
+    # Vv = []
+    # u1 = []
+    # u2 = []
+    # for i in range(simu.M):
+    #     Vv.append(V[i].value)
+    #     u1.append(U[i,0].value)
+    #     u2.append(U[i,1].value)
+    # plt.figure(1)
+    # plt.plot(Vv)
+    # plt.plot(np.ones(simu.M)*tank.hmax*tank.area)
+    # plt.plot(np.ones(simu.M)*tank.hmin*tank.area)
+    # # status = problem.status
+    
+    # plt.figure(2)
+    # plt.plot(u1)
+    # plt.plot(u2)
+    ######
+    
+    Uv = np.zeros((simu.M,simu.N))
+    for i in range(simu.M):
+        Uv[i,:] = [U[i,0].value[0], U[i,1].value[0]]
+    
+    return Uv#np.array([U[0,0][0], U[0,1][0]])
 
        
 ## Simulation and plotting ###################################
@@ -90,9 +113,10 @@ for k in range(0,simu.ite):
         
     
         U = opti(sups, simu.d[k:k+simu.M], simu.c[k:k+simu.M], h[k], Qextr)
-        q[ k,:] = U        #Delivered water from pump 1 and 2
-        qE[k,:] = U
-        Q = U
+        q[ k,:] = U[0,:]        #Delivered water from pump 1 and 2
+        qE[k,:] = U[0,:]
+      
+        Q = U[0,:]
         #Calculate cummulated consumption for last 23 hours to use at next iteration
         prevq = q[max(k-22,0):k+1, :]
         prevq_pad = np.pad(prevq, ((simu.M-1 - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
@@ -103,7 +127,7 @@ for k in range(0,simu.ite):
 
         
         dV = sum(q[k,:]) - simu.d[k]      #Change of volume in the tank: the sum of supply minus consumption.
-        V[k+1] = V[k] + dV                  #Volume in tank: volume of last time stem + change in volume
+        V[k+1] = V[k] + dV                  #Volume in tank: volume of last time step + change in volume
         ## Done with simulation
         
         #Calculate the commulated cost of solution. (to compare with other solutions)
@@ -137,7 +161,7 @@ for k in range(0,simu.ite):
         # cum_q1[k] = cumsum1 + q1[k] 
         # cum_q2[k] = cumsum2 + q2[k] 
         # print(simu.c[k], simu.d[k])
-        plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:], he, extr)
+        plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:])#, he, extr)
         # print(Q)
         # print(U)
     except KeyboardInterrupt:
