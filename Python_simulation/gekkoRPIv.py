@@ -24,73 +24,74 @@ def E(x, r, Dz, p0):
 ################################################
 ## MPC optimization #########################
 def opti(sups, g, c, h0, extr):
-    kappa = 10000
-    #Initialize Model
-    m = GEKKO(remote = False)
+    print(tank.area, sups[0].Vmax)
+    # kappa = 10000
+    # #Initialize Model
+    # m = GEKKO(remote = False)
 
-    #initialize variables
-    U = m.Array(m.Var,(simu.M, simu.N), lb = 0.0 )
-    for i in range(simu.M):
-        U[i,0].UPPER = sups[0].Qmax
-        U[i,1].UPPER = sups[1].Qmax
-    V = m.Array(m.Var, (simu.M), lb = tank.hmin*tank.area, ub = tank.hmax*tank.area)
+    # #initialize variables
+    # U = m.Array(m.Var,(simu.M, simu.N), lb = 0.0 )
+    # for i in range(simu.M):
+    #     U[i,0].UPPER = sups[0].Qmax
+    #     U[i,1].UPPER = sups[1].Qmax
+    # V = m.Array(m.Var, (simu.M), lb = tank.hmin*tank.area, ub = tank.hmax*tank.area)
 
-    m.Equation(V[0] == h0*tank.area)
+    # m.Equation(V[0] == h0*tank.area)
     
-    for i in range(simu.M-1):
-        m.Equation(V[i+1] == V[i] + m.sum(U[i,:]) - g[i][0])
+    # for i in range(simu.M-1):
+    #     m.Equation(V[i+1] == V[i] + m.sum(U[i,:]) - g[i][0])
 
 
 
-    # m.Equation(U[0,0] <= sups[0].Vmax - extr[0,0])
-    # m.Equation(U[0,1] <= sups[1].Vmax - extr[0,1])
-    # cost = 0
-    # for i in range(simu.N):
-    #     for k in range(simu.M):
-    #         cost +=  c[k][0]* E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
-    #              + sups[i].K*U[k,i] 
+    # # m.Equation(U[0,0] <= sups[0].Vmax - extr[0,0])
+    # # m.Equation(U[0,1] <= sups[1].Vmax - extr[0,1])
+    # # cost = 0
+    # # for i in range(simu.N):
+    # #     for k in range(simu.M):
+    # #         cost +=  c[k][0]* E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
+    # #              + sups[i].K*U[k,i] 
             
             
-    #     for k in range(1, simu.M):
-    #         cost += (U[k,i] - U[k-1,i])**2
-    #         m.Equation(m.sum(U[:k,i]) <= sups[i].Vmax - extr[k,i])
+    # #     for k in range(1, simu.M):
+    # #         cost += (U[k,i] - U[k-1,i])**2
+    # #         m.Equation(m.sum(U[:k,i]) <= sups[i].Vmax - extr[k,i])
 
-    # cost += kappa * (V[0] - V[-1])**2
+    # # cost += kappa * (V[0] - V[-1])**2
 
-    # m.Obj(cost)
-    #Set global options
-    m.options.IMODE = 3 #steady state optimization
-    m.options.DIAGLEVEL = 1
-    #Solve simulation
-    m.solve(disp = False)
+    # # m.Obj(cost)
+    # #Set global options
+    # m.options.IMODE = 3 #steady state optimization
+    # m.options.DIAGLEVEL = 1
+    # #Solve simulation
+    # m.solve(disp = False)
     
-    #test plot
+    # #test plot
  
-    Vv = []
-    u1 = []
-    u2 = []
-    for i in range(simu.M):
-        Vv.append(V[i].value)
-        u1.append(U[i,0].value)
-        u2.append(U[i,1].value)
-    plt.figure(1)
-    plt.plot(Vv)
-    plt.plot(np.ones(simu.M)*tank.hmax*tank.area)
-    plt.plot(np.ones(simu.M)*tank.hmin*tank.area)
-    # status = problem.status
+    # Vv = []
+    # u1 = []
+    # u2 = []
+    # for i in range(simu.M):
+    #     Vv.append(V[i].value)
+    #     u1.append(U[i,0].value)
+    #     u2.append(U[i,1].value)
+    # plt.figure(1)
+    # plt.plot(Vv)
+    # plt.plot(np.ones(simu.M)*tank.hmax*tank.area)
+    # plt.plot(np.ones(simu.M)*tank.hmin*tank.area)
+    # # status = problem.status
     
-    plt.figure(2)
-    plt.plot(u1)
-    plt.plot(u2)
-    ######
+    # plt.figure(2)
+    # plt.plot(u1)
+    # plt.plot(u2)
+    # ######
     
     
     
-    Uv = np.zeros((simu.M,simu.N))
-    for i in range(simu.M):
-        Uv[i,:] = [U[i,0].value[0], U[i,1].value[0]]
+    # Uv = np.zeros((simu.M,simu.N))
+    # for i in range(simu.M):
+    #     Uv[i,:] = [U[i,0].value[0], U[i,1].value[0]]
     
-    return Uv#np.array([U[0,0][0], U[0,1][0]])
+    return [0,0]#Uv#np.array([U[0,0][0], U[0,1][0]])
 
        
 ## Simulation and plotting ###################################
