@@ -14,7 +14,7 @@ from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
 from parameters import sups, tank, simu
 from communication_setup import com_functions
-import cvxpy as cp
+from gekko import GEKKO
 
 ## Cost function
 def E(x, r, Dz, p0):
@@ -43,31 +43,6 @@ class loc_ctr(Thread):
 
     def opti(self, sup, g, c, h0, lamb, rho, Uglobal, Qextr):
         
-        kappa = 2#0.1
-        U = cp.Variable((simu.M,simu.N))
-        A = np.tril(np.ones((simu.M,simu.M)))
-        cost = 0
-        
-        for k in range(simu.M):
-            cost += c[k] * E(U[k,self.p_nr],sup.r, sup.Dz, sup.p0)* 3.6 \
-                 + sup.K*U[k,self.p_nr] + cp.power(cp.norm(U[k,self.p_nr] - U[k-1,self.p_nr],2),2)    #*3.6 to get from kWh til kWs.
-                 
-        cost += kappa* cp.power(cp.norm(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g),2),2)\
-              + cp.sum(cp.multiply(lamb , (U-Uglobal))) \
-              + rho/2 * cp.power(cp.norm(U-Uglobal,2),2) 
-            
-              
-        constr = [
-                  U >= np.zeros((simu.M,simu.N)), 
-                  U[:,self.p_nr] <= np.ones(simu.M)*sup.Qmax,
-                  cp.cumsum(U[:,self.p_nr]) <= np.ones(simu.M)*sup.Vmax - Qextr,
-                  # cp.sum(U[:,i]) <= sup.Vmax,
-                  np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) >= np.ones((simu.M,1))*tank.hmin*tank.area,
-                  np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) <= np.ones((simu.M,1))*tank.hmax*tank.area
-                  ]
-        
-        problem = cp.Problem(cp.Minimize(cost) , constr)
-        problem.solve()#solver = cp.MOSEK, mosek_params = {'MSK_DPAR_OPTIMIZER_MAX_TIME':  10.0})
 
         return U.value[0,self.p_nr], U.value
 

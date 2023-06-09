@@ -7,9 +7,10 @@ Created on Mon Mar 13 12:03:26 2023
 """
 
 import scipy.io
-# import cvxpy as cp
+import cvxpy as cp
 # import pandas as pd
 import numpy as np
+
 
 
 ## Parameters ####################
@@ -72,10 +73,10 @@ c0 = mat2['price'] / 1000 #Electricity price hour for hour per kWh
 simu.c = c0[::sample_hourly]#np.repeat(c0, 4) #Electricity prices every hour (so addapt to other dt when necessary)
 
 
-## Cost function
-# def E(x, r, Dz, p0):
-#     eta = 0.7
-#     return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
+# Cost function
+def E(x, r, Dz, p0):
+    eta = 0.7
+    return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
 
 
 simu.M = int(24*60*60 / simu.dt )      #24 hours in seconds divided into M steps by dt

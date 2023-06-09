@@ -1,84 +1,53 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 30 19:30:34 2023
+Created on Fri Jun  9 12:50:20 2023
 
 @author: kst
 """
 
-
-from gekko import GEKKO
 import numpy as np
-# import sys
-# sys.path.append('../Python_simulation')
-from parameters import sups, tank, simu
-from plotting import plotting
-import matplotlib.pylab as plt
+import scipy
+from scipy.optimize import NonlinearConstraint
+import sys
+sys.path.append('../Python_simulation')
+from Python_simulation.parameters import sups, tank, simu
+from Python_simulation.plotting import plotting
 
 
-def E(x, r, Dz, p0):
+def f(x, c,g):
     eta = 0.7
-    return (simu.dt**2)**(-1) * r * eta * x**3 + eta*x*(Dz - p0) 
-
+    r = np.append(np.ones(simu.M)*sups[0].r, np.ones(simu.M)*sups[1].r)
+    Dz = np.append(np.ones(simu.M)*sups[0].Dz, np.ones(simu.M)*sups[1].Dz)
+    p0 = np.append(np.ones(simu.M)*sups[0].p0, np.ones(simu.M)*sups[1].p0)   
+    K = np.append(np.ones(simu.M)*sups[0].K, np.ones(simu.M)*sups[1].K)
+    normV = (np.sum(x) - np.sum(g))**2
+    return (np.sum( c * ( 1/simu.dt**2 * r * eta * x**3 + eta*x*(Dz - p0)) * 3.6 + K*x)+normV)/1000000
+    
 ################################################
 ## MPC optimization #########################
-def opti(sups, g, c, h0, extr):
-    kappa = 10
-    #Initialize Model
-    m = GEKKO(remote = False)
-
-    #initialize variables
-    U = m.Array(m.Var,(simu.M, simu.N), lb = 0.0 )
-    #set upper bound for each coloumn in U
-    for i in range(simu.M):
-        U[i,0].UPPER = sups[0].Qmax
-        U[i,1].UPPER = sups[1].Qmax
+def opti(sups, g, c, h0, extr, x0):
+    kappa = 10000
+    Qmax = np.append(np.ones(simu.M)*1/sups[0].Qmax, np.ones(simu.M)*1/sups[1].Qmax)
+    Mextr0 = max(sups[0].Vmax, np.max(extr[:,0]))
+    Mextr1 = max(sups[1].Vmax, np.max(extr[:,1]))
     
-    #Variable for the volume
-    V = m.Array(m.Var, (simu.M), lb = tank.hmin*tank.area, ub = tank.hmax*tank.area)
-    #Set start volume
-    m.Equation(V[0] == h0*tank.area)
+    constr = [NonlinearConstraint(lambda x: x*Qmax, np.zeros(2*simu.M), np.ones(2*simu.M)),
+              # NonlinearConstraint(lambda x: np.sum(x[:simu.M])*1/sups[0].Vmax, 0, 1),
+              # NonlinearConstraint(lambda x: np.sum(x[simu.M:])*1/sups[1].Vmax, 0, 1),
+              NonlinearConstraint(lambda x: np.cumsum(x[:simu.M])*1/Mextr0, 0, (np.ones(simu.M)*sups[0].Vmax - extr[:,0])*1/Mextr0 ),
+              NonlinearConstraint(lambda x: np.cumsum(x[simu.M:])*1/Mextr1, 0, (np.ones(simu.M)*sups[1].Vmax - extr[:,1])*1/Mextr1 ),
+              NonlinearConstraint(lambda x: np.ones(simu.M)*h0 + (np.cumsum(x[:simu.M]) + np.cumsum(x[simu.M:])- np.cumsum(g))/tank.area , tank.hmin, tank.hmax)
+              ]
     
-    
-    #CONSTRAINTS
-    #The dynamics of the tank
-    for i in range(simu.M-1):
-        m.Equation(V[i+1] == V[i] + m.sum(U[i,:]) - g[i][0])
-
-    #Require that the extraction of water for the last 24 hours does not excees limit
-    m.Equation(U[0,0] <= sups[0].Vmax - extr[0,0])
-    m.Equation(U[0,1] <= sups[1].Vmax - extr[0,1])
-    
-    #COST
-    cost = 0
-    for i in range(simu.N):
-        for k in range(simu.M):
-            #Cost function
-            cost +=  c[k][0]* E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
-                 + sups[i].K*U[k,i] 
-            
-        #Cost on the fluctuations of U
-        for k in range(1, simu.M):
-            cost += (U[k,i] - U[k-1,i])**2
-            m.Equation(m.sum(U[:k,i]) <= sups[i].Vmax - extr[k,i])  #The rest of the extraction constraint.
-        # m.Equation(m.sum(U[:,i]) <= sups[i].Vmax)
-    
-    #minimize cap between start volume and volume after 24 hours.
-    cost += kappa * (V[0] - V[-1])**2
-    #set cost function and object to minimize 
-    m.Minimize(cost)
-    #Set global options
-    m.options.IMODE = 3 #steady state optimization
-    # m.options.DIAGLEVEL = 1 #See timings etc for solver
-    #Solve simulation
-    m.solve(disp = False)
-    
-    #Get solution on a numpy array form
-    Uv = np.zeros((simu.M,simu.N))
-    for i in range(simu.M):
-        Uv[i,:] = [U[i,0].value[0], U[i,1].value[0]]
-    
-    return Uv
+    res = scipy.optimize.minimize(f, x0, args = (c,g), constraints = constr)
+    if res.status != 0:
+        print(res)
+    U = np.zeros((simu.M,simu.N))
+    U[:,0] = res.x[:simu.M]
+    U[:,1] = res.x[simu.M:]
+    # print(U)
+    return  U, res.x
 
        
 ## Simulation and plotting ###################################
@@ -92,7 +61,7 @@ A = np.tril(np.ones((simu.M,simu.M)))
 plot = plotting('Plot1')
 cost = np.zeros(simu.N)
 Qextr = np.zeros((simu.M, simu.N))
-
+x0 = np.ones(2*simu.M)
 for k in range(0,simu.ite): 
     try:
         h[k] = V[k]/tank.area   #Level of water in tank: Volume divided by area of tank.
@@ -100,7 +69,7 @@ for k in range(0,simu.ite):
         
         
     
-        U = opti(sups, simu.d[k:k+simu.M], simu.c[k:k+simu.M], h[k], Qextr)
+        U, x0 = opti(sups, simu.d[k:k+simu.M], simu.c[k:k+simu.M], h[k], Qextr, x0)
         q[ k,:] = U[0,:]        #Delivered water from pump 1 and 2
         qE[k,:] = U[0,:]
       
@@ -115,7 +84,7 @@ for k in range(0,simu.ite):
 
         
         dV = sum(q[k,:]) - simu.d[k]      #Change of volume in the tank: the sum of supply minus consumption.
-        V[k+1] = V[k] + dV                  #Volume in tank: volume of last time step + change in volume
+        V[k+1] = V[k] + dV                  #Volume in tank: volume of last time stem + change in volume
         ## Done with simulation
         
         #Calculate the commulated cost of solution. (to compare with other solutions)
@@ -149,7 +118,7 @@ for k in range(0,simu.ite):
         # cum_q1[k] = cumsum1 + q1[k] 
         # cum_q2[k] = cumsum2 + q2[k] 
         # print(simu.c[k], simu.d[k])
-        plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:])#, he, extr)
+        plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:], he, extr)
         # print(Q)
         # print(U)
     except KeyboardInterrupt:
