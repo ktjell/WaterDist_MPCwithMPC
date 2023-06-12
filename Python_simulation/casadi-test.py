@@ -51,7 +51,10 @@ def opti(sups, g, c, h0, extr):
     
     opti.minimize(cost)
     opti.subject_to(constr)
+    # opts = {}
+    # opts['ipopt.print_level'] = 0
     opti.solver('sqpmethod')
+    
     sol = opti.solve()#solver = cp.MOSEK)
     
     # status = problem.status
