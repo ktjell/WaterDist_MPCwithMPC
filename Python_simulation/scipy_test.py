@@ -9,8 +9,8 @@ Created on Fri Jun  9 12:50:20 2023
 import numpy as np
 import scipy
 from scipy.optimize import NonlinearConstraint
-import sys
-sys.path.append('../Python_simulation')
+# import sys
+# sys.path.append('../Python_simulation')
 from Python_simulation.parameters import sups, tank, simu
 from Python_simulation.plotting import plotting
 
