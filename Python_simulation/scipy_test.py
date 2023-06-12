@@ -11,8 +11,8 @@ import scipy
 from scipy.optimize import NonlinearConstraint
 # import sys
 # sys.path.append('../Python_simulation')
-from Python_simulation.parameters import sups, tank, simu
-from Python_simulation.plotting import plotting
+from parameters import sups, tank, simu
+from plotting import plotting
 
 
 def f(x, c,g):
