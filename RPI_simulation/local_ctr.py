@@ -14,13 +14,21 @@ from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
 from parameters import sups, tank, simu
 from communication_setup import com_functions
-from gekko import GEKKO
+import scipy
+from scipy.optimize import NonlinearConstraint
 
 ## Cost function
-def E(x, r, Dz, p0):
+def f(x,i,c,g,sup,rho, Uglobal, lamb):
     eta = 0.7
-    return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
-
+    normV = (np.sum(x) - np.sum(g))**2
+    return ( \
+        np.sum( 
+            c * ( 1/simu.dt**2 * sup.r * eta * x[i*simu.M:(i+1)*simu.M]**3 + eta*x[i*simu.M:(i+1)*simu.M]*(sup.Dz - sup.p0)) * 3.6 \
+            + sup.K*x[i*simu.M:(i+1)*simu.M])+normV \
+            + np.sum(lamb * (x-Uglobal)) \
+            + rho/2 * np.linalg.norm(x-Uglobal,2)**2 \
+            ) /1000000
+    
 
 class loc_ctr(Thread):
     def __init__(self, p_nr, rec_q):
@@ -41,10 +49,25 @@ class loc_ctr(Thread):
     ################################################
     ## MPC optimization #########################
 
-    def opti(self, sup, g, c, h0, lamb, rho, Uglobal, Qextr):
+    def opti(self, sup, i, g, c, h0, lamb, rho, Uglobal, extr, x0):
         
+        Qmax = np.ones(simu.M)*1/sup.Qmax
+        Mextr = max(sup.Vmax, np.max(extr))
+        
+        constr = [NonlinearConstraint(lambda x: x[i*simu.M:(i+1)*simu.M]*Qmax, np.zeros(simu.M), np.ones(simu.M)),
+                  NonlinearConstraint(lambda x: np.cumsum(x[i*simu.M:(i+1)*simu.M])*1/Mextr, 0, (np.ones(simu.M)*sup.Vmax - extr)*1/Mextr ),
+                  NonlinearConstraint(lambda x: np.ones(simu.M)*h0 + (np.cumsum(x[:simu.M]) + np.cumsum(x[simu.M:])- np.cumsum(g))/tank.area , tank.hmin, tank.hmax)
+                  ]
+        
+        res = scipy.optimize.minimize(f, x0, args = (i,c,g,sup, rho, Uglobal.flatten('F'), lamb.flatten('F')), constraints = constr)
+        if res.status != 0:
+            print(res)
+        U = np.zeros((simu.M,simu.N))
+        U[:,0] = res.x[:simu.M]
+        U[:,1] = res.x[simu.M:]
+        # print(U)
+        return  U, res.x
 
-        return U.value[0,self.p_nr], U.value
 
 
 
@@ -58,7 +81,7 @@ class loc_ctr(Thread):
         # Uglobal = np.zeros((simu.M,simu.N))
         
         # lamb = np.zeros((ite+1, simu.M, simu.N))
-
+        # x0 = np.zeros((2*simu.M)) 
         # u = np.zeros((ite))
         # rho = .1
         # j = 0
@@ -68,9 +91,10 @@ class loc_ctr(Thread):
             #get data
             h = self.com_func.get_data(str(k), 1) #Get tank level (will later be sensor measurement)
             
-            U = np.ones((2,2))
+            U = np.ones((2,2))*k
             self.distribute_shares(str(k), U)
-            
+            Usum = self.reconstruct_secret(str(k))
+            print(Usum)
             
             if h >= tank.hmax:
                 u = 0
@@ -87,7 +111,7 @@ class loc_ctr(Thread):
             # j = 0
             # while acc and j < ite:
             #     #Solve the local opti problem
-            #     u, U = self.opti(sups[self.p_nr], simu.d[k:k+simu.M], simu.c[k:k+simu.M], h, lamb[j,:,:], rho, Uglobal, Qextr)
+            #     U, x0 = self.opti(sups[self.p_nr], self.p_nr, simu.d[k:k+simu.M], simu.c[k:k+simu.M], h, lamb[j,:,:], rho, Uglobal, Qextr, x0)
                 
             #     #Value to send to cloud to compute sum
             #     to_sum = U + 1/rho * lamb[j,:,:]

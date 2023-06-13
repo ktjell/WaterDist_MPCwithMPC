@@ -92,7 +92,7 @@ A = np.tril(np.ones((simu.M,simu.M)))
 plot = plotting('Plot1')
 cost = np.zeros(simu.N)
 Qextr = np.zeros((simu.M, simu.N))
-
+sample_pr_day = int(24/simu.sample_hourly)
 for k in range(0,simu.ite): 
     try:
         h[k] = V[k]/tank.area   #Level of water in tank: Volume divided by area of tank.
@@ -106,7 +106,7 @@ for k in range(0,simu.ite):
       
         Q = U[0,:]
         #Calculate cummulated consumption for last 23 hours to use at next iteration
-        prevq = q[max(k-22,0):k+1, :]
+        prevq = q[max(k-(sample_pr_day-2),0):k+1, :]
         prevq_pad = np.pad(prevq, ((simu.M-1 - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
         Qextr = np.pad(np.cumsum(prevq_pad[::-1], axis = 0)[::-1],((0,1),(0,0)))
 
@@ -125,7 +125,7 @@ for k in range(0,simu.ite):
         
         
         #Calculating moving cumulated sum for the last 24 hours to check sattisfaction of constraints.
-        cum_q[k] = np.sum(q[max(k-23,0):k+1,:], axis = 0)
+        cum_q[k] = np.sum(q[max(k-(sample_pr_day-1),0):k+1,:], axis = 0)
 
         
         #Calculating how good the optimator estimates "what happens"
@@ -134,7 +134,7 @@ for k in range(0,simu.ite):
         
 
    ##### TRY TO PLOT MAYBE PREDITION OF EXTRACTION
-        prevq = q[max(k-23,0):k, :] #go to k since index k+1 already is in U.
+        prevq = q[max(k-(sample_pr_day-1),0):k, :] #go to k since index k+1 already is in U.
         prevq1 = np.pad(prevq, ((simu.M - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
         extr = np.vstack((prevq1, U))
         extr = extr.cumsum(axis = 0)
