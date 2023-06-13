@@ -58,13 +58,20 @@ sups = [sup1, sup2]
 
 
 simu = Simulation('Simu1')
-sample_hourly = 1 # Sample every sample_hourly hour
+sample_hourly = 2 # Sample every sample_hourly hour
+simu.sample_hourly = sample_hourly
 simu.dt = sample_hourly*60*60       #[sec] sample time
 simu.simTime = 7*24*3600 #[sec] Sim time 
 ## Demand and electricity prices ####################
 mat1 = scipy.io.loadmat('data/UserConsumption.mat')  # Simulated demand
 mat2 = scipy.io.loadmat('data/Elspotprice3mdr.mat')  # Actual electricity prices from https://www.energidataservice.dk/tso-electricity/elspotprices
-simu.d = mat1['q_u1'][::4][::sample_hourly] #User consumption every 15 min (so addapt to other dt when necessary)
+# d = mat1['q_u1']#User consumption every 15 min 
+# ld1 = int(len(d)/4)
+# d1 = np.sum(d[:ld1*4].reshape((ld1,4)),axis = 1) #User consumption every hour
+d = mat1['q_u1'][::4] #User consumption every 15 min (so addapt to other dt when necessary)
+# ld = int(len(d)/sample_hourly)
+# d1 = np.sum(d[:ld*sample_hourly].reshape((ld,sample_hourly)),axis = 1) #User consumption every hour
+simu.d = d[::sample_hourly]
 simu.TIME = mat1['time'][::4][::sample_hourly]
 #Convert time to np-time format:
 start = np.datetime64('2023-01-01T00:00') #Chose some starting point
@@ -73,11 +80,8 @@ c0 = mat2['price'] / 1000 #Electricity price hour for hour per kWh
 simu.c = c0[::sample_hourly]#np.repeat(c0, 4) #Electricity prices every hour (so addapt to other dt when necessary)
 
 
-# Cost function
-# def E(x, r, Dz, p0):
-#     eta = 0.7
-#     return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
 
+print('!')
 
 simu.M = int(24*60*60 / simu.dt )      #24 hours in seconds divided into M steps by dt
 simu.N = 2

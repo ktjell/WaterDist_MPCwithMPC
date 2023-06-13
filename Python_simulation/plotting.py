@@ -25,11 +25,11 @@ class plotting:
         
         self.f, self.ax = plt.subplots(4, sharex=True, figsize = (15,9))
         plt.xticks(rotation=45)
-        # loc = md.AutoDateLocator(interval_multiples=True) # this locator puts ticks at regular intervals
-        # self.ax[0].xaxis.set_major_formatter(md.ConciseDateFormatter(loc)) #md.DateFormatter('%H:%M'))
-        # self.ax[0].xaxis.set_major_locator(loc)
-        # minloc = md.AutoDateLocator(minticks=2, maxticks=5)
-        # self.ax[0].xaxis.set_minor_locator(minloc)
+        loc = md.AutoDateLocator(interval_multiples=True) # this locator puts ticks at regular intervals
+        self.ax[0].xaxis.set_major_formatter(md.ConciseDateFormatter(loc)) #md.DateFormatter('%H:%M'))
+        self.ax[0].xaxis.set_major_locator(loc)
+        minloc = md.AutoDateLocator(minticks=2, maxticks=5)
+        self.ax[0].xaxis.set_minor_locator(minloc)
         for ax in self.ax:
             ax.grid(axis = 'x')
 
@@ -67,8 +67,9 @@ class plotting:
 
         
     def updatePlot(self, k, h, q,d,cum_q, p, he = [], extr=[]):
-
+        
         try:
+            print('!')
             self.ax[0].plot(simu.TIMEformat[k:k+simu.M], he, 'y',alpha = 0.2)
             self.ax[2].plot(simu.TIMEformat[k-1+simu.M], extr[-1,0], 'co', alpha = 0.5)
             self.ax[2].plot(simu.TIMEformat[k-1+simu.M], extr[-1,1], 'o', color = 'orange', alpha = 0.5)

@@ -60,7 +60,7 @@ def optiSeparable(sups, g, c, h0, lambPrev, Uglobal,Qextr):
     Utemp = np.zeros((ite, simu.N, simu.M, simu.N))
     # Uglobal = np.zeros((simu.M,simu.N))
     u = np.zeros((simu.N, ite))
-    rho = .8
+    rho = 0.3
     x0 = np.ones(2*simu.M)
 
     acc = True
@@ -103,12 +103,13 @@ V[0] = tank.h0*tank.area                          #Start Volume
 p = np.zeros((simu.ite, simu.N))  #Pressures
 Qextr = np.zeros((simu.M, simu.N))
 Uglobal = np.zeros((simu.M,simu.N))
-lamb = np.zeros((simu.N, simu.M,simu.N))
+lamb = np.ones((simu.N, simu.M,simu.N))*2000
 plot = plotting('Plot1')
 plt.figure()
 ####
 javr = 0
 cost = np.zeros(simu.N)
+sample_pr_day = int(24/simu.sample_hourly)
 for k in range(0,simu.ite): 
     try:
         h[k] = V[k]/tank.area
@@ -119,7 +120,7 @@ for k in range(0,simu.ite):
         qS[k,:] = Q
         
         #Calculate cummulated consumption for last 23 hours to use at next iteration
-        prevq = q[max(k-22,0):k+1, :]
+        prevq = q[max(k-(sample_pr_day-2),0):k+1, :]
         prevq_pad = np.pad(prevq, ((simu.M-1 - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
         Qextr = np.pad(np.cumsum(prevq_pad[::-1], axis = 0)[::-1],((0,1),(0,0)))
      
@@ -139,7 +140,7 @@ for k in range(0,simu.ite):
         
         
         #Calculating moving cumulated sum for the last 24 hours to check sattisfaction of constraints.
-        cum_q[k] = np.sum(q[max(k-23,0):k+1,:], axis = 0)
+        cum_q[k] = np.sum(q[max(k-(sample_pr_day-1),0):k+1,:], axis = 0)
 
 
         print(k, '/', simu.ite, 'ite = ',j)

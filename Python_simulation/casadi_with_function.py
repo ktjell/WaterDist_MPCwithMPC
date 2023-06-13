@@ -1,57 +1,80 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  9 19:48:43 2023
+Created on Mon Jun 12 11:30:51 2023
 
 @author: kst
 """
 
+
+import casadi as ca
 import numpy as np
-import cvxpy as cp
-import sys
-sys.path.append('../Python_simulation')
-from Python_simulation.parameters import sups, tank, simu
-from Python_simulation.plotting import plotting
+# import sys
+# sys.path.append('../Python_simulation')
+from parameters import sups, tank, simu
+from plotting import plotting
 
 
-# Cost function
+
 def E(x, r, Dz, p0):
     eta = 0.7
-    return cp.inv_pos(simu.dt**2) * r * eta * cp.power(x,3) + eta*x*(Dz - p0) 
+    return (simu.dt**2)**(-1) * r * eta * x**3 + eta*x*(Dz - p0) 
+
 
 ################################################
 ## MPC optimization #########################
-def opti(sups, g, c, h0, extr):
+def opti(sups):
     kappa = 10000
-    U = cp.Variable((simu.M, simu.N))
+    opti = ca.Opti()
+    U = opti.variable(simu.M, simu.N)
+    demand = opti.parameter(simu.M)
+    price = opti.parameter(simu.M)
+    tank_level_start = opti.parameter()
+    extraction_last_Mh = opti.parameter(simu.M, simu.N)
     A = np.tril(np.ones((simu.M,simu.M)))
     cost = 0
-    constr = [ U >= np.zeros((simu.M,simu.N)),
-              np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) >= np.ones((simu.M,1))*tank.hmin*tank.area,
-              np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) <= np.ones((simu.M,1))*tank.hmax*tank.area
+    
+    tank_level_Mh = np.ones((simu.M,1))*(tank_level_start*tank.area) + A @ (U @ np.ones((simu.N,1)) - demand)
+    
+    constr = [ ca.vec(U) >= 0,
+              ca.vec(tank_level_Mh) >= tank.hmin*tank.area,
+              ca.vec(tank_level_Mh) <= tank.hmax*tank.area
               ]
     
     for i in range(simu.N):
         for k in range(simu.M):
-            cost += c[k] * E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
-                 + sups[i].K*U[k,i] 
+            cost += (price[k] * E(U[k,i],sups[i].r, sups[i].Dz, sups[i].p0)* 3.6 \
+             + sups[i].K*U[k,i]) 
         for k in range(1, simu.M):
-            cost += cp.power(cp.norm(U[k,i] - U[k-1,i],2),2)
-        # cost += 2*cp.power(cp.norm(U[:,i],2),2)
-      
+            cost += (U[k,i] - U[k-1,i])**2
+ 
         constr.extend([
-                    U[:,i] <= sups[i].Qmax,
-                    cp.cumsum(U[:,i]) <= np.ones(simu.M)*sups[i].Vmax - extr[:,i] 
+                    ca.vec(U[:,i]) <= sups[i].Qmax,
+                    ca.cumsum(U[:,i]) <= sups[i].Vmax - extraction_last_Mh[:,i] 
                     # cp.sum(U[:,i]) <= sups[i].Vmax
                     ])
 
-    cost += kappa* cp.power(cp.norm(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g),2),2)
+    cost += kappa* ca.norm_2(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - demand))**2
     
-    problem = cp.Problem(cp.Minimize(cost) , constr)
-    problem.solve()#solver = cp.MOSEK)
-    status = problem.status
+   
+    
+    opti.minimize(cost)
+    opti.subject_to(constr)
+    # opts = {}
+    # opts['ipopt.print_level'] = 0
+    opts = {}
+    # opts['qpsol'] = 'qrqp'
+    # opts['print_time'] = False
+    # opts['print_header'] = False
+    opti.solver('sqpmethod', opts)
+    
+    F = opti.to_function('opti', [demand, price, tank_level_start, extraction_last_Mh], [U])
+    
+    # sol = opti.solve()#solver = cp.MOSEK)
+    
+    # status = problem.status
 
-    return U.value[0,:], U.value
+    return F#sol.value(U)
 
        
 ## Simulation and plotting ###################################
@@ -65,6 +88,9 @@ A = np.tril(np.ones((simu.M,simu.M)))
 plot = plotting('Plot1')
 cost = np.zeros(simu.N)
 Qextr = np.zeros((simu.M, simu.N))
+F = opti(sups)
+
+sample_pr_day = int(24/simu.sample_hourly)
 
 for k in range(0,simu.ite): 
     try:
@@ -73,11 +99,12 @@ for k in range(0,simu.ite):
         
         
     
-        Q , U = opti(sups, simu.d[k:k+simu.M], simu.c[k:k+simu.M], h[k], Qextr)
-        q[ k,:] = Q        #Delivered water from pump 1 and 2
-        qE[k,:] = Q
+        U = F(simu.d[k:k+simu.M], simu.c[k:k+simu.M], h[k], Qextr)
+        q[ k,:] = U[0,:]        #Delivered water from pump 1 and 2
+        qE[k,:] = U[0,:]
+        Q = U[0,:]
         #Calculate cummulated consumption for last 23 hours to use at next iteration
-        prevq = q[max(k-22,0):k+1, :]
+        prevq = q[max(k-(sample_pr_day-2),0):k+1, :]
         prevq_pad = np.pad(prevq, ((simu.M-1 - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
         Qextr = np.pad(np.cumsum(prevq_pad[::-1], axis = 0)[::-1],((0,1),(0,0)))
 
@@ -96,7 +123,7 @@ for k in range(0,simu.ite):
         
         
         #Calculating moving cumulated sum for the last 24 hours to check sattisfaction of constraints.
-        cum_q[k] = np.sum(q[max(k-23,0):k+1,:], axis = 0)
+        cum_q[k] = np.sum(q[max(k-(sample_pr_day-1),0):k+1,:], axis = 0)
 
         
         #Calculating how good the optimator estimates "what happens"
@@ -105,24 +132,14 @@ for k in range(0,simu.ite):
         
 
    ##### TRY TO PLOT MAYBE PREDITION OF EXTRACTION
-        prevq = q[max(k-23,0):k, :] #go to k since index k+1 already is in U.
+        prevq = q[max(k-(sample_pr_day-1),0):k, :] #go to k since index k+1 already is in U.
         prevq1 = np.pad(prevq, ((simu.M - len(prevq),0),(0,0))) #pad with zeros in front, so array has length M
         extr = np.vstack((prevq1, U))
         extr = extr.cumsum(axis = 0)
         extr = extr[simu.M:,:]-extr[:simu.M,:] #take only the last simu.M values
-        # extr = np.sum(U, axis = 0)
-        
-        # cumsum1 = cum_q1[k-1]
-        # cumsum2 = cum_q2[k-1]
-        # if k % simu.M == 0:     #Reset cumsum at beginning of each day
-        #     cumsum1 = 0
-        #     cumsum2 = 0
-        # cum_q1[k] = cumsum1 + q1[k] 
-        # cum_q2[k] = cumsum2 + q2[k] 
-        # print(simu.c[k], simu.d[k])
+
         plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:], he, extr)
-        # print(Q)
-        # print(U)
+
     except KeyboardInterrupt:
         break
 print('Commulated cost: ', sum(cost))  
