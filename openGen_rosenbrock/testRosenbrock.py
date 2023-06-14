@@ -11,8 +11,8 @@ import opengen as og
 
 # Use TCP server
 # ------------------------------------
-# mng = og.tcp.OptimizerTcpManager('my_optimizers/rosenbrock')
-# mng.start()
+mng = og.tcp.OptimizerTcpManager('my_optimizers/rosenbrock')
+mng.start()
 
 mng.ping()
 server_response = mng.call([1.0, 50.0])
