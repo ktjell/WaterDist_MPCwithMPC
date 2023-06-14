@@ -43,7 +43,7 @@ def opti(sups, g, c, h0, extr):
         constr.extend([
                     ca.vec(U[:,i]) <= sups[i].Qmax,
                     ca.cumsum(U[:,i]) <= sups[i].Vmax - extr[:,i] 
-                    # cp.sum(U[:,i]) <= sups[i].Vmax
+                    # ca.sum1(ca.sum2(U[:,i])) <= sups[i].Vmax
                     ])
 
     cost += kappa* ca.norm_2(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g))**2

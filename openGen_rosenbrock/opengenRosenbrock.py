@@ -22,6 +22,7 @@ problem = og.builder.Problem(u, p, phi) \
     .with_constraints(bounds)
 build_config = og.config.BuildConfiguration()  \
     .with_build_directory("my_optimizers") \
+    .with_build_target('rpi')\
     .with_build_mode("debug")                  \
     .with_tcp_interface_config()
 meta = og.config.OptimizerMeta()                   \

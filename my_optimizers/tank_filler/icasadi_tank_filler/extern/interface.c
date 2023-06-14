@@ -19,8 +19,8 @@
  *   + licence: MIT
  * + Problem
  *   + vars: 48
- *   + parameters: 24
- *   + n1: 0
+ *   + parameters: 49
+ *   + n1: 24
  *   + n2: 0
  *
  */
@@ -40,16 +40,16 @@
 #define NU_TANK_FILLER 48
 
 /* Number of static parameters */
-#define NP_TANK_FILLER 24
+#define NP_TANK_FILLER 49
 
 /* Dimension of F1 (number of ALM constraints) */
-#define N1_TANK_FILLER 0
+#define N1_TANK_FILLER 24
 
 /* Dimension of F2 (number of PM constraints) */
 #define N2_TANK_FILLER 0
 
 /* Dimension of xi = (c, y) */
-#define NXI_TANK_FILLER 0
+#define NXI_TANK_FILLER 25
 
 /* Preconditioning Flag */
 

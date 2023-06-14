@@ -51,10 +51,10 @@ const DO_PRECONDITIONING: bool = false;
 pub const TANK_FILLER_NUM_DECISION_VARIABLES: usize = 48;
 
 /// Number of parameters
-pub const TANK_FILLER_NUM_PARAMETERS: usize = 24;
+pub const TANK_FILLER_NUM_PARAMETERS: usize = 49;
 
 /// Number of parameters associated with augmented Lagrangian
-pub const TANK_FILLER_N1: usize = 0;
+pub const TANK_FILLER_N1: usize = 24;
 
 /// Number of penalty constraints
 pub const TANK_FILLER_N2: usize = 0;
@@ -68,7 +68,19 @@ pub const TANK_FILLER_N2: usize = 0;
 
 
 
+// ---Parameters of ALM-type constraints (Set C)---------------------------------------------------------
+const SET_C_XMIN :Option<&[f64]> = Some(&[576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,576.0,]);
+const SET_C_XMAX :Option<&[f64]> = Some(&[768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,768.0,]);
 
+
+
+
+// ---Parameters of ALM-type constraints (Set Y)---------------------------------------------------------
+/// Y_min
+const SET_Y_XMIN :Option<&[f64]> = Some(&[-1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0, -1000000000000.0]);
+
+/// Y_max
+const SET_Y_XMAX :Option<&[f64]> = Some(&[1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0, 1000000000000.0]);
 
 
 
@@ -80,13 +92,13 @@ fn make_constraints() -> impl Constraint {
     // - Cartesian product of constraints:
         let bounds = CartesianProduct::new();
         
-        let idx_1 = 25;
+        let idx_1 = 24;
         let xmin_1 :Option<&[f64]> = Some(&[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,]);
         let xmax_1:Option<&[f64]> = Some(&[40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,]);
         let set_1 = Rectangle::new(xmin_1, xmax_1);
         let bounds = bounds.add_constraint(idx_1, set_1);
         
-        let idx_2 = 49;
+        let idx_2 = 48;
         let xmin_2 :Option<&[f64]> = Some(&[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,]);
         let xmax_2:Option<&[f64]> = Some(&[40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,40.0,]);
         let set_2 = Rectangle::new(xmin_2, xmax_2);
@@ -95,8 +107,16 @@ fn make_constraints() -> impl Constraint {
     bounds
     }
 
+/// Make set C
+fn make_set_c() -> impl Constraint {
+    Rectangle::new(SET_C_XMIN, SET_C_XMAX)
+    }
 
 
+/// Make set Y
+fn make_set_y() -> impl Constraint {
+    Rectangle::new(SET_Y_XMIN, SET_Y_XMAX)
+    }
 
 
 // ---Main public API functions--------------------------------------------------------------------------
@@ -162,15 +182,21 @@ pub fn solve(
         Ok(())
     };
     
+    let f1 = |u: &[f64], res: &mut [f64]| -> Result<(), SolverError> {
+        icasadi_tank_filler::mapping_f1(u, p, res);
+        Ok(())
+    };
     let bounds = make_constraints();
 
+    let set_y = make_set_y();
+    let set_c = make_set_c();
     let alm_problem = AlmProblem::new(
         bounds,
-        NO_SET,
-        NO_SET,
+        Some(set_c),
+        Some(set_y),
         psi,
         grad_psi,
-        NO_MAPPING,
+        Some(f1),
         NO_MAPPING,
         TANK_FILLER_N1,
         TANK_FILLER_N2,

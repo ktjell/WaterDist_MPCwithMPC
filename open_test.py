@@ -8,6 +8,7 @@ Created on Tue Jun 13 12:08:53 2023
 
 
 import casadi.casadi as cs
+import casadi as ca
 import opengen as og
 import numpy as np
 import sys
@@ -19,15 +20,16 @@ from Python_simulation.parameters import sups, tank, simu
 
 def f(x, c, sup):
     eta = 0.7
-    return (( c * ( 1/simu.dt**2 * sup.r * eta * x**3 + eta*x*(sup.Dz - sup.p0)) * 3.6 /
-                   + sup.K*x))/10000
+    return (( c * ( (1/(simu.dt**2)) * sup.r * eta * x**3 + eta*x*(sup.Dz - sup.p0)) * 3.6 /
+                   + sup.K*x))
     
-kappa = 10000
+kappa = 1#10000
 
 U = cs.SX.sym('U', 2*simu.M)
-p = cs.SX.sym('p', simu.M)
+p = cs.SX.sym('p', 2*simu.M + 1)
 
-# demand, price = (p[:simu.M], p[simu.M:] )
+
+price, demand, h0 = (p[:simu.M], p[simu.M:2*simu.M], p[2*simu.M] )
 
 # h0 = cs.SX.sym('h0', 1)
 # ext = cs.SX.sym('ext', (simu.M, simu.N))
@@ -36,22 +38,31 @@ p = cs.SX.sym('p', simu.M)
 cost = 0
 for i in range(simu.N):
     for k in range(simu.M):
-        cost += f(U[i*simu.M+k], p[k],sups[i])
+        cost += f(U[i*simu.M+k], price[k],sups[i])
     # for k in range(1, simu.M):
-    #     cost += (U[k,i] - U[k-1,i])**2
+    #     cost += (U[i*simu.M+k] - U[i*simu.M + k-1])**2
  
 
-# cost += kappa* cs.norm_2(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - d ))**2
+cost += kappa* (ca.sum1(U) - ca.sum1(demand))**2 
 
    
 #constraints:
-seg_ids = [simu.M, 2*simu.M]
-rect1 = og.constraints.Rectangle(xmin= [0]*simu.M, xmax = [sups[0].Qmax]*simu.M)
-rect2 = og.constraints.Rectangle(xmin= [0]*simu.M, xmax = [sups[1].Qmax]*simu.M)
+seg_ids = [simu.M-1, 2*simu.M-1]
+
+# 0< U < Qmax
+rect1 = og.constraints.Rectangle(xmin=[0]*simu.M, xmax=[sups[0].Qmax]*simu.M)
+rect2 = og.constraints.Rectangle(xmin=[0]*simu.M, xmax=[sups[1].Qmax]*simu.M)
 bounds = og.constraints.CartesianProduct(seg_ids, [rect1,rect2])
 
+# Vmin < V < Vmax
+
+F1 = np.ones(simu.M)*h0*tank.area + ca.cumsum(U[:simu.M]) + ca.cumsum(U[simu.M:]) - ca.cumsum(demand)
+C = og.constraints.Rectangle(xmin=[tank.hmin*tank.area]*simu.M, xmax=[tank.hmax*tank.area]*simu.M)
+
+
 problem = og.builder.Problem(U, p, cost)\
-    .with_constraints(bounds)
+    .with_constraints(bounds)\
+    .with_aug_lagrangian_constraints(F1, C)
 build_config = og.config.BuildConfiguration()\
     .with_build_directory("my_optimizers")\
     .with_build_mode("debug")\
