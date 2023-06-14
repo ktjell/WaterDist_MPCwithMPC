@@ -36,9 +36,9 @@ def opti(sups):
     
     tank_level_Mh = np.ones((simu.M,1))*(tank_level_start*tank.area) + A @ (U @ np.ones((simu.N,1)) - demand)
     
-    constr = [ ca.vec(U) >= 0,
-              ca.vec(tank_level_Mh) >= tank.hmin*tank.area,
-              ca.vec(tank_level_Mh) <= tank.hmax*tank.area
+    constr = [ ca.vec(U) >= 0
+              # ca.vec(tank_level_Mh) >= tank.hmin*tank.area,
+              # ca.vec(tank_level_Mh) <= tank.hmax*tank.area
               ]
     
     for i in range(simu.N):
@@ -48,14 +48,15 @@ def opti(sups):
         for k in range(1, simu.M):
             cost += (U[k,i] - U[k-1,i])**2
  
-        constr.extend([
-                    ca.vec(U[:,i]) <= sups[i].Qmax,
-                    ca.cumsum(U[:,i]) <= sups[i].Vmax - extraction_last_Mh[:,i] 
-                    # cp.sum(U[:,i]) <= sups[i].Vmax
-                    ])
+        # constr.extend([
+        #             ca.vec(U[:,i]) <= sups[i].Qmax,
+        #             ca.cumsum(U[:,i]) <= sups[i].Vmax - extraction_last_Mh[:,i] 
+        #             # cp.sum(U[:,i]) <= sups[i].Vmax
+        #             ])
 
     cost += kappa* ca.norm_2(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - demand))**2
     
+
    
     
     opti.minimize(cost)

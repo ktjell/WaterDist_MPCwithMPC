@@ -65,8 +65,8 @@ simu.sample_hourly = sample_hourly
 simu.dt = sample_hourly*60*60       #[sec] sample time
 simu.simTime = 7*24*3600 #[sec] Sim time 
 ## Demand and electricity prices ####################
-mat1 = scipy.io.loadmat('data/UserConsumption.mat')  # Simulated demand
-mat2 = scipy.io.loadmat('data/Elspotprice3mdr.mat')  # Actual electricity prices from https://www.energidataservice.dk/tso-electricity/elspotprices
+mat1 = scipy.io.loadmat('Python_simulation/data/UserConsumption.mat')  # Simulated demand
+mat2 = scipy.io.loadmat('Python_simulation/data/Elspotprice3mdr.mat')  # Actual electricity prices from https://www.energidataservice.dk/tso-electricity/elspotprices
 # d = mat1['q_u1']#User consumption every 15 min 
 # ld1 = int(len(d)/4)
 # d1 = np.sum(d[:ld1*4].reshape((ld1,4)),axis = 1) #User consumption every hour
