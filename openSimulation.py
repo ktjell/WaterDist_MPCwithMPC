@@ -68,8 +68,10 @@ for k in range(0,simu.ite):
      
      
       par = simu.c[k:k+simu.M].flatten().tolist()
-      par.extend(simu.d[:simu.M].flatten().tolist())
+      par.extend(simu.d[k:k+simu.M].flatten().tolist())
       par.append(h[k])
+      par.extend(Qextr[:,0].flatten().tolist())
+      par.extend(Qextr[:,1].flatten().tolist())
       response =  mng.call(par)
       if response.is_ok():
           # Solver returned a solution
@@ -120,7 +122,7 @@ for k in range(0,simu.ite):
       extr = extr.cumsum(axis = 0)
       extr = extr[simu.M:,:]-extr[:simu.M,:] #take only the last simu.M values
 
-      plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:], he, extr)
+      plot.updatePlot(k+1, h[:k+1], q[:k+1,:],simu.d[:k+1],cum_q[:k+1,:], p[:k+1,:])#, he, extr)
 
  
 print('Commulated cost: ', sum(cost))  

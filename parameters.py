@@ -43,7 +43,7 @@ sup1.r = 8/(Qdesign**2)      #[m/(m^3h)] network resistance
 sup1.Vmax = 12*60            #[m**3/day] Extraction permit #24*60
 sup1.Qmax = Qdesign          #[m^3/h] Maximum flow that the pumps can deliver
 sup1.num_of_pumps = 2        #number of flow steps 
-sup1.K = 5                   #[kr/m^3] Cost of producing water 
+sup1.K = 5                  #[kr/m^3] Cost of producing water 
 sup1.p0 = 0                  # presssure "before" pumping stations
 
 sup2 = Networksupply('NetworkSupply 2')

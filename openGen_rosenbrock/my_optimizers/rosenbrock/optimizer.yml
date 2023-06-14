@@ -4,7 +4,7 @@ build:
   build_mode: debug
   open_version: null
   opengen_version: 0.7.1
-  target_system: null
+  target_system: armv7-unknown-linux-gnueabihf
 meta:
   authors:
   - John Smith
