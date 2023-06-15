@@ -28,7 +28,7 @@ class cloud_server(Thread):
             #Perform computation
             compute_share = sum(shares)
             
-            self.com_func.broadcast_data(compute_share, str(self.p_nr), ips.addr_dict['local_ctr'])
+            self.com_func.broadcast_data(compute_share, str(i), ips.addr_dict['local_ctr'])
 
 
         

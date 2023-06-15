@@ -64,10 +64,11 @@ class loc_ctr(Thread):
             
             #get data
             h = self.com_func.get_data(str(k), 1) #Get tank level (will later be sensor measurement)
-            
+            print('h: ', h)
             U = np.ones((2,2))*k
             self.distribute_shares(str(k), U)
             Usum = self.reconstruct_secret(str(k))
+            print('reconstructed secret:')
             print(Usum)
             
             if h >= tank.hmax:
