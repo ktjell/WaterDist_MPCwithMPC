@@ -61,7 +61,7 @@ class loc_ctr(Thread):
         # u = np.zeros((ite))
         # rho = .8
         # j = 0
-        # u = 0
+        u = 30
         for k in range(simu.ite):
             
             #get data
