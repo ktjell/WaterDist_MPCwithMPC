@@ -73,20 +73,20 @@ class secret_sharing:
             for j in range(m):
                 s = []
                 for k in range(len(shares)):
-                    s.append(shares[k,i,j])
+                    s.append(shares[k][i,j])
                 res[i,j] = self.recon_secret(s)
         return res
                 
         
-ss = secret_sharing()
+# ss = secret_sharing()
 
-m = np.zeros((5,5)) 
+# m = np.zeros((5,5)) 
 
-shares = ss.gen_matrix_shares(m)
+# shares = ss.gen_matrix_shares(m)
 
-matrix = ss.recon_matrix_secret(shares)
+# matrix = ss.recon_matrix_secret(shares)
 
-print(matrix)               
+# print(matrix)               
     
     
     

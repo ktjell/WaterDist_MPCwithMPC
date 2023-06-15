@@ -33,7 +33,7 @@ class loc_ctr(Thread):
             
     def reconstruct_secret(self, name):
         shares = self.com_func.get_data(name, len(ips.addr_dict['cloud']))
-        print(shares)
+        # print(shares)
         return self.ss.recon_matrix_secret(shares)
     
     ################################################
