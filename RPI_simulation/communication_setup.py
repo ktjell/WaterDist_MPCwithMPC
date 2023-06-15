@@ -68,7 +68,7 @@ def setup_com(name, connect_to):
 
 class com_functions:
     def __init__(self, p_nr,  rec_q):
-        rec_q = rec_q
+        self.rec_q = rec_q
         self.rec_dict = {}
         self.p_nr = p_nr
     
