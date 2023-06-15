@@ -14,7 +14,9 @@ class ipconfigs:
                       ['192.168.100.2', 62]  #party 1: Local ctr 2
                       ]
     
-    simulator_addr = ['192.168.100.3', 62]   #Simulator
+    simulator_addr = [
+                     ['192.168.100.3', 62]   #Simulator
+                     ]
     
     cloud_addr = [
                   ['192.168.100.5', 62], #party 0: Cloud 1
