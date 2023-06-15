@@ -78,15 +78,15 @@ class secret_sharing:
         return res
                 
         
-# ss = secret_sharing()
+ss = secret_sharing()
 
-# m = np.zeros((5,5)) 
+m = np.zeros((5,5)) 
 
-# shares = ss.gen_matrix_shares(m)
+shares = ss.gen_matrix_shares(m)
 
-# matrix = ss.recon_matrix_secret(shares)
+matrix = ss.recon_matrix_secret(shares)
 
-# print(matrix)               
+print(matrix)               
     
     
     

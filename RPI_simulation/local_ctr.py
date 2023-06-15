@@ -32,7 +32,9 @@ class loc_ctr(Thread):
         
             
     def reconstruct_secret(self, name):
-        return self.ss.recon_matrix_secret(self.com_func.get_data(name, len(ips.addr_dict['cloud'])))
+        shares = self.com_func.get_data(name, len(ips.addr_dict['cloud']))
+        print(shares)
+        return self.ss.recon_matrix_secret(shares)
     
     ################################################
     ## MPC optimization #########################
