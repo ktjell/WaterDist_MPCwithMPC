@@ -23,15 +23,16 @@ class loc_ctr(Thread):
         self.rec_q = rec_q
         self.p_nr = p_nr
         self.com_func = com_functions(p_nr, rec_q)
+        self.ss = ss()
  
     def distribute_shares(self, name, sec):
-        shares = ss.gen_matrix_shares(sec)
+        shares = self.ss.gen_matrix_shares(sec)
         for i, addr in enumerate(ips.cloud_addr):
             sock.TCPclient(*addr, [name + str(self.p_nr) , shares[i]])
         
             
     def reconstruct_secret(self, name):
-        return ss.recon_matrix_secret(self.com_func.get_data(name, len(ips.addr_dict['cloud'])))
+        return self.ss.recon_matrix_secret(self.com_func.get_data(name, len(ips.addr_dict['cloud'])))
     
     ################################################
     ## MPC optimization #########################
