@@ -23,6 +23,7 @@ problem = og.builder.Problem(u, p, phi) \
 build_config = og.config.BuildConfiguration()  \
     .with_build_directory("my_optimizers") \
     .with_build_mode("debug")                  \
+    .with_target_system('armv7-unknown-linux-gnueabihf')\
     .with_tcp_interface_config()
 meta = og.config.OptimizerMeta()                   \
     .with_optimizer_name("rosenbrock")
