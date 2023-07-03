@@ -11,19 +11,24 @@ Created on Tue Jun 13 14:42:27 2023
 
 import casadi as ca
 import numpy as np
-import opengen as og
+# import opengen as og
 # import sys
 # sys.path.append('../Python_simulation')
 from parameters import sups, tank, simu
 from plotting import plotting
 
+##With python module interface
+import sys
+sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/my_optimizers/tank_filler")
+import tank_filler
+solver = tank_filler.solver()
 
+### With tcp interface
+# mng = og.tcp.OptimizerTcpManager('my_optimizers/tank_filler')
+# mng.start()
 
-mng = og.tcp.OptimizerTcpManager('my_optimizers/tank_filler')
-mng.start()
-
-pong = mng.ping()                 # check if the server is alive
-print(pong)
+# pong = mng.ping()                 # check if the server is alive
+# print(pong)
 
 # price = simu.c[:simu.M].flatten().tolist()
 # response =  mng.call(price)
@@ -72,16 +77,17 @@ for k in range(0,simu.ite):
       par.append(h[k])
       par.extend(Qextr[:,0].flatten().tolist())
       par.extend(Qextr[:,1].flatten().tolist())
-      response =  mng.call(par)
-      if response.is_ok():
+      result = solver.run(p = par)
+      # response =  mng.call(par)
+      # if response.is_ok():
           # Solver returned a solution
-          solution_data = response.get()
-          s = solution_data.solution
-          U[:,0] = s[:simu.M]
-          U[:,1] = s[simu.M:]
-      else:
-          print('opti error')
-          break
+      # solution_data = response.get()
+      s = result.solution
+      U[:,0] = s[:simu.M]
+      U[:,1] = s[simu.M:]
+      # else:
+      #     print('opti error')
+      #     break
     
     
       q[ k,:] = U[0,:]        #Delivered water from pump 1 and 2
