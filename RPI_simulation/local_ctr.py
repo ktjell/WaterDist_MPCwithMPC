@@ -93,7 +93,7 @@ class loc_ctr(Thread):
                 par.extend(lamb[j,:,1].flatten().tolist())
                 par.extend(Uglobal[:,0].flatten().tolist())
                 par.extend(Uglobal[:,1].flatten().tolist())
-                par.append(h[k])
+                par.append(h)
                 par.append(rho)
                 # response =  self.mng.call(par)
                 result = solver.run(p = par)
