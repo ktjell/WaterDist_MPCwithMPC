@@ -24,7 +24,7 @@ class cloud_server(Thread):
   
         for i in range(simu.ite):
             shares = self.com_func.get_data(str(i), 2) #2 is number of local controllers that sends shares to cloud
-        
+            print(shares)
             #Perform computation
             compute_share = sum(shares)
             
