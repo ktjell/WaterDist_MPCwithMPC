@@ -85,6 +85,7 @@ class loc_ctr(Thread):
             j = 0
             U = np.zeros((simu.M, simu.N))
             while acc and j < ite:
+                print(j)
                 # Solve the local opti problem
                 par = simu.c[k:k+simu.M].flatten().tolist()
                 par.extend(simu.d[k:k+simu.M].flatten().tolist())
