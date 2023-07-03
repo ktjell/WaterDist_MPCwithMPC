@@ -6,7 +6,7 @@ Created on Thu Jun 15 12:30:24 2023
 @author: kst
 """
 
-import opengen as og
+# import opengen as og
 import numpy as np
 from threading import Thread
 import tcp_socket as sock
@@ -14,6 +14,12 @@ from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
 from parameters import sups, tank, simu
 from communication_setup import com_functions
+
+##With python module interface
+import sys
+sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/RPI_simulation/my_optimizers/tank_filler")
+import tank_filler
+
 
 
 
@@ -39,18 +45,19 @@ class loc_ctr(Thread):
     ################################################
     ## MPC optimization #########################
     
-    def startSolver(self):
-        mng = og.tcp.OptimizerTcpManager('my_optimizers/tank_filler')
-        mng.start()
+    # def startSolver(self):
+    #     mng = og.tcp.OptimizerTcpManager('my_optimizers/tank_filler')
+    #     mng.start()
 
-        mng.ping()                 # check if the server is alive
+    #     mng.ping()                 # check if the server is alive
         
-        self.mng = mng
+    #     self.mng = mng
 
 
     def run(self):
         print('Local controller ', self.p_nr+1, ' online')
-        self.startSolver()
+        # self.startSolver()
+        solver = tank_filler.solver()
         print('Solver succesfully started.')
         
         Qextr = np.zeros((simu.M))
@@ -88,16 +95,17 @@ class loc_ctr(Thread):
                 par.extend(Uglobal[:,1]).flatten().tolist()
                 par.append(h[k])
                 par.append(rho)
-                response =  self.mng.call(par)
-                if response.is_ok():
-                    # Solver returned a solution
-                    solution_data = response.get()
-                    s = solution_data.solution
-                    U[:,0] = s[:simu.M]
-                    U[:,1] = s[simu.M:]
-                else:
-                    print('opti error')
-                    break
+                # response =  self.mng.call(par)
+                result = solver.run(p = par)
+                # if response.is_ok():
+                #     # Solver returned a solution
+                #     solution_data = response.get()
+                s = result.solution
+                U[:,0] = s[:simu.M]
+                U[:,1] = s[simu.M:]
+                # else:
+                #     print('opti error')
+                #     break
                 
                 
 
