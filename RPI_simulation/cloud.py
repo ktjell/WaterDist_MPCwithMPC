@@ -21,14 +21,16 @@ class cloud_server(Thread):
     
     def run(self):
         print('Cloud ', self.p_nr+1, ' online')
-  
-        for i in range(simu.ite):
-            shares = self.com_func.get_data(str(i), 2) #2 is number of local controllers that sends shares to cloud
+        T = True
+        while T:
+            shares = self.com_func.get_data('0', 2) #2 is number of local controllers that sends shares to cloud
             print(shares)
+            if shares[0] == 'Stop':
+                T = False
             #Perform computation
             compute_share = sum(shares)
             
-            self.com_func.broadcast_data(compute_share, str(i), ips.addr_dict['local_ctr'])
+            self.com_func.broadcast_data(compute_share, '0', ips.addr_dict['local_ctr'])
 
 
         

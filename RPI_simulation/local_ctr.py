@@ -98,6 +98,7 @@ class loc_ctr(Thread):
                 par.append(rho)
                 # response =  self.mng.call(par)
                 result = solver.run(p = par)
+                print('got result')
                 # if response.is_ok():
                 #     # Solver returned a solution
                 #     solution_data = response.get()
@@ -112,10 +113,11 @@ class loc_ctr(Thread):
 
                 #Value to send to cloud to compute sum
                 to_sum = U + 1/rho * lamb[j,:,:]
-                self.distribute_shares(str(k), to_sum)
+                print('sending to cloud')
+                self.distribute_shares('0', to_sum)
                 #Get sum of local U's back from cloud and compute Uglobal as the average. 
-                Usum = self.reconstruct_secret(str(k))
-                
+                Usum = self.reconstruct_secret('0')
+                print('recieved from cloud')
                 Uglobal = (1/simu.N) * Usum
                 
                 #Update local lambda
@@ -128,5 +130,5 @@ class loc_ctr(Thread):
             
             #Send the computed u to simulator (will later be input to local pump)
             self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
-          
+        self.distribute_shares('0', 'Stop')          
             
