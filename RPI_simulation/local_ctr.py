@@ -85,15 +85,14 @@ class loc_ctr(Thread):
             j = 0
             U = np.zeros((simu.M, simu.N))
             while acc and j < ite:
-                print(lamb[j,:,0])
                 # Solve the local opti problem
                 par = simu.c[k:k+simu.M].flatten().tolist()
                 par.extend(simu.d[k:k+simu.M].flatten().tolist())
                 par.extend(Qex.flatten().tolist())
-                par.extend(lamb[j,:,0]).flatten().tolist()
-                par.extend(lamb[j,:,1]).flatten().tolist()
-                par.extend(Uglobal[:,0]).flatten().tolist()
-                par.extend(Uglobal[:,1]).flatten().tolist()
+                par.extend(lamb[j,:,0].flatten().tolist())
+                par.extend(lamb[j,:,1].flatten().tolist())
+                par.extend(Uglobal[:,0].flatten().tolist())
+                par.extend(Uglobal[:,1].flatten().tolist())
                 par.append(h[k])
                 par.append(rho)
                 # response =  self.mng.call(par)
