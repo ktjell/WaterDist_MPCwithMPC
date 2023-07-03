@@ -123,12 +123,14 @@ class loc_ctr(Thread):
                 #Update local lambda
                 lamb[j+1,:,:] = lamb[j,:,:] + rho*( U - Uglobal )
                 #Compute accuracy of lambda
+                print('start computing norm')
                 acc = (np.linalg.norm(lamb[j,:,:] - lamb[j-1,:,:], 2) > 0.1)  
+                print('finished computing norm')
                 #Update j
                 j+=1  
                 u = U[0,self.p_nr]
             
             #Send the computed u to simulator (will later be input to local pump)
             self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
-        self.distribute_shares('0', 'Stop')          
+        # self.distribute_shares('0', 'Stop')          
             

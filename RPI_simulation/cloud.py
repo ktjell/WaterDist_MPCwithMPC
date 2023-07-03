@@ -25,8 +25,8 @@ class cloud_server(Thread):
         while T:
             shares = self.com_func.get_data('0', 2) #2 is number of local controllers that sends shares to cloud
             print(shares)
-            if shares[0] == 'Stop':
-                T = False
+            # if shares[0] == 'Stop':
+            #     T = False
             #Perform computation
             compute_share = sum(shares)
             
