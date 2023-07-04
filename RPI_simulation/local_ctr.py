@@ -125,7 +125,7 @@ class loc_ctr(Thread):
                 #Compute accuracy of lambda
                 print('start computing norm')
                 acc = (np.linalg.norm(lamb[j,:,:] - lamb[j-1,:,:], 2) > 0.1)  
-                print('finished computing norm')
+                print('finished computing norm. acc: ', acc)
                 #Update j
                 j+=1  
                 u = U[0,self.p_nr]
