@@ -74,6 +74,7 @@ class com_functions:
     
     def readQueue(self):
         while not self.rec_q.empty():
+            print(self.rec_dict.keys())
             b = self.rec_q.get()[1]
             self.rec_dict[b[0]] = b[1]
             
@@ -83,7 +84,6 @@ class com_functions:
         for i in range(n):
             while name+str(i) not in self.rec_dict:
                 self.readQueue()
-                print(self.rec_dict.keys())
             a = self.rec_dict[name+str(i)]
             del self.rec_dict[name+str(i)]
             res.append(a)
