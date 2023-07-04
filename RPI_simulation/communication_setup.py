@@ -83,6 +83,7 @@ class com_functions:
         for i in range(n):
             while name+str(i) not in self.rec_dict:
                 self.readQueue()
+                print(self.rec_dict.keys())
             a = self.rec_dict[name+str(i)]
             del self.rec_dict[name+str(i)]
             res.append(a)
