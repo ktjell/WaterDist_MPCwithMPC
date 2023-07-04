@@ -74,9 +74,10 @@ class com_functions:
     
     def readQueue(self):
         while not self.rec_q.empty():
-            print(self.rec_dict.keys())
+            
             b = self.rec_q.get()[1]
             self.rec_dict[b[0]] = b[1]
+            print(self.rec_dict.keys())
             
     
     def get_data(self, name, n):

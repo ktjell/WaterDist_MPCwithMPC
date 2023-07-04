@@ -28,7 +28,7 @@ class simulator(Thread):
         q = np.zeros((simu.ite, simu.N))                  #The optimized flows from pumps
         h,V = np.zeros(simu.ite), np.zeros(simu.ite+1)    #Tank level and Volume
         V[0] = tank.h0*tank.area                          #Start Volume
-
+        self.com_func.readQueue()
         for k in range(simu.ite):
             #Level of water in tank: Volume divided by area of tank:
             h[k] = V[k]/tank.area  
@@ -36,6 +36,7 @@ class simulator(Thread):
             self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
             print('sent data to ctr')
             #Delivered water from pump 1 and 2:
+            self.com_func.readQueue()
             q[k,:] = np.array(self.com_func.get_data(str(k), len(ips.addr_dict['local_ctr']))).reshape((1,2)) 
             print('recieved data from ctr')
             #Change of volume in the tank: the sum of supply minus consumption.
