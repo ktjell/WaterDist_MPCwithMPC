@@ -14,7 +14,7 @@ from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
 from parameters import sups, tank, simu
 from communication_setup import com_functions
-
+from pyModbusTCP.client import ModbusClient
 ##With python module interface
 import sys
 sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/RPI_simulation/my_optimizers/tank_filler")
@@ -59,6 +59,12 @@ class loc_ctr(Thread):
         # self.startSolver()
         solver = tank_filler.solver()
         print('Solver succesfully started.')
+        ip_adr = ips.local_ctr_addr[self.p_nr][0]
+        c = ModbusClient(host=ip_adr, port=502, unit_id=1, auto_open=True)
+        if c.open():
+            print('Modbus client succesfully connected')
+        else:
+            print('Modbus clint connection failed.')
         
         Qextr = np.zeros((simu.M))
         Uglobal = np.zeros((simu.M,simu.N))
@@ -70,7 +76,10 @@ class loc_ctr(Thread):
         for k in range(simu.ite):
             
             #get data
-            h = self.com_func.get_data(str(k), 1)[0] #Get tank level (will later be sensor measurement)
+            # h = self.com_func.get_data(str(k), 1)[0] #Get tank level (will later be sensor measurement)
+            h = 0
+            while h == 0:
+                h = c.read_holding_registers(k%2, 1)
             print('h: ', h)
             
             
@@ -134,6 +143,7 @@ class loc_ctr(Thread):
 
             #Send the computed u to simulator (will later be input to local pump)
             print('sending to sim')
+            # c.write_multiple_registers(10, u)
             self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
         # self.distribute_shares('0', 'Stop')          
             

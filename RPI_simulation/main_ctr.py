@@ -8,6 +8,11 @@ Created on Mon May  8 15:26:22 2023
 
 from local_ctr import loc_ctr
 from communication_setup import setup_com
+import argparse
+import logging
+from pyModbusTCP.server import ModbusServer
+from ip_config import ipconfigs as ips
+
 
 #Setup communication
 ## Prepare to receive data:
@@ -19,7 +24,18 @@ ctr = loc_ctr(pnr, rec_q)
 ctr.start()
 
 
-
-
-
-
+ip_adr = ips.local_ctr_addr[pnr][0]
+# init logging
+logging.basicConfig()
+# parse args
+parser = argparse.ArgumentParser()
+parser.add_argument('-H', '--host', type=str, default=ip_adr, help='Host (default: localhost)')
+parser.add_argument('-p', '--port', type=int, default=502, help='TCP port (default: 502)')
+parser.add_argument('-d', '--debug', action='store_true', help='set debug mode')
+args = parser.parse_args()
+# logging setup
+if args.debug:
+    logging.getLogger('pyModbusTCP.server').setLevel(logging.DEBUG)
+# start modbus server
+server = ModbusServer(host=args.host, port=args.port)
+server.start()

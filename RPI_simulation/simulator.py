@@ -12,6 +12,7 @@ from ip_config import ipconfigs as ips
 from parameters import tank, simu
 from communication_setup import com_functions
 from plotting import plotting
+from pyModbusTCP.client import ModbusClient
 
 class simulator(Thread):
     def __init__(self, rec_q, p_nr):
@@ -23,6 +24,17 @@ class simulator(Thread):
    
     def run(self):
         print('Simulator online')
+        c1 = ModbusClient(host=ips.local_ctr_addr[0][0], port=502, unit_id=1, auto_open=True)
+        if c1.open():
+            print('Modbus client 1 succesfully connected')
+        else:
+            print('Modbus clint 1 connection failed.')
+        
+        c2 = ModbusClient(host=ips.local_ctr_addr[1][0], port=502, unit_id=1, auto_open=True)
+        if c2.open():
+            print('Modbus client 2 succesfully connected')
+        else:
+            print('Modbus clint 2 connection failed.')
         
         plot = plotting('Plot1')
         q = np.zeros((simu.ite, simu.N))                  #The optimized flows from pumps
@@ -33,8 +45,10 @@ class simulator(Thread):
             #Level of water in tank: Volume divided by area of tank:
             h[k] = V[k]/tank.area  
             #send to local controllers
-            self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
-            print('sent data to ctr')
+            # self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
+            c1.write_multiple_registers(k%2, h[k])
+            c2.write_multiple_registers(k%2, h[k])
+            print('put data on modbus')
             #Delivered water from pump 1 and 2:
             self.com_func.readQueue()
             q[k,:] = np.array(self.com_func.get_data(str(k), len(ips.addr_dict['local_ctr']))).reshape((1,2)) 
