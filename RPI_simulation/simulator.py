@@ -46,7 +46,7 @@ class simulator(Thread):
             h[k] = V[k]/tank.area  
             #send to local controllers
             # self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
-            data = int(h[k]*1000)
+            data = int(h[k]*100)
             c1.write_multiple_registers(k%2, [data])
             c2.write_multiple_registers(k%2, [data])
             print('put data on modbus: ', data)
