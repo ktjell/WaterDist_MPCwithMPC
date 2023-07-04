@@ -80,6 +80,7 @@ class loc_ctr(Thread):
             h = 0
             while h == 0:
                 h = c.read_holding_registers(k%2, 1)[0]/1000
+                print(h)
             print('h: ', h)
             
             
