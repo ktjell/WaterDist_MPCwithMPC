@@ -117,6 +117,7 @@ class loc_ctr(Thread):
                 print('sending to cloud')
                 self.distribute_shares('0', to_sum)
                 #Get sum of local U's back from cloud and compute Uglobal as the average. 
+                print('Waiting on cloud...')
                 Usum = self.reconstruct_secret('0')
                 print('recieved from cloud')
                 Uglobal = (1/simu.N) * Usum
