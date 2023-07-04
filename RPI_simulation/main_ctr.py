@@ -23,7 +23,7 @@ class modbus(Thread):
         
         
     def run(self):
-        ip_adr = ips.local_ctr_addr[self.pnr][0]
+        ip_adr = ips.local_ctr_addr[self.p_nr][0]
         # init logging
         logging.basicConfig()
         # parse args
