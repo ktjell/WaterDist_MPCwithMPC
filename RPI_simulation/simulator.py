@@ -49,6 +49,7 @@ class simulator(Thread):
             c1.write_multiple_registers(k%2, [int(h[k]*1000)])
             c2.write_multiple_registers(k%2, [int(h[k]*1000)])
             print('put data on modbus')
+            print(c1.read_holding_registers(k%2, 1) )
             #Delivered water from pump 1 and 2:
             self.com_func.readQueue()
             q[k,:] = np.array(self.com_func.get_data(str(k), len(ips.addr_dict['local_ctr']))).reshape((1,2)) 
