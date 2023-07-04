@@ -62,7 +62,7 @@ class loc_ctr(Thread):
         
         Qextr = np.zeros((simu.M))
         Uglobal = np.zeros((simu.M,simu.N))
-        ite = 100
+        ite = 20
         lamb = np.zeros((ite+1, simu.M, simu.N))
         u = 0#np.zeros((simu.ite))
         rho = .8
@@ -123,8 +123,8 @@ class loc_ctr(Thread):
                 #Update local lambda
                 lamb[j+1,:,:] = lamb[j,:,:] + rho*( U - Uglobal )
                 #Compute accuracy of lambda
-                acc = (np.linalg.norm(lamb[j,:,:] - lamb[j-1,:,:], 2) > 0.001)  
-                print('finished computing norm. acc: ', acc)
+                norm = np.linalg.norm(lamb[j,:,:] - lamb[j-1,:,:], 2) 
+                print('finished computing norm. acc: ', norm)
                 #Update j
                 j+=1  
                 u = U[0,self.p_nr]
