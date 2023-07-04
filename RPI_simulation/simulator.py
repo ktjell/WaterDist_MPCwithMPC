@@ -33,9 +33,11 @@ class simulator(Thread):
             #Level of water in tank: Volume divided by area of tank:
             h[k] = V[k]/tank.area  
             #send to local controllers
-            self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])            
+            self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
+            print('sent data to ctr')
             #Delivered water from pump 1 and 2:
             q[k,:] = self.com_func.get_data(str(k), len(ips.addr_dict['local_ctr'])) 
+            print('recieved data from ctr')
             #Change of volume in the tank: the sum of supply minus consumption.
             dV = sum(q[k,:]) - simu.d[k]      
             #Volume in tank: volume of last time step + change in volume
