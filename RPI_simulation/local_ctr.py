@@ -131,6 +131,7 @@ class loc_ctr(Thread):
                 u = U[0,self.p_nr]
             
             #Send the computed u to simulator (will later be input to local pump)
+            print('sending to sim')
             self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
         # self.distribute_shares('0', 'Stop')          
             

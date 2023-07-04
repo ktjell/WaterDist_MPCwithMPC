@@ -36,7 +36,7 @@ class simulator(Thread):
             self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
             print('sent data to ctr')
             #Delivered water from pump 1 and 2:
-            q[k,:] = self.com_func.get_data(str(k), len(ips.addr_dict['local_ctr'])) 
+            q[k,:] = np.array(self.com_func.get_data(str(k), len(ips.addr_dict['local_ctr']))).reshape((1,2)) 
             print('recieved data from ctr')
             #Change of volume in the tank: the sum of supply minus consumption.
             dV = sum(q[k,:]) - simu.d[k]      
