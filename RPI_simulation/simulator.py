@@ -46,8 +46,8 @@ class simulator(Thread):
             h[k] = V[k]/tank.area  
             #send to local controllers
             # self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
-            c1.write_multiple_registers(k%2, [h[k]])
-            c2.write_multiple_registers(k%2, [h[k]])
+            c1.write_multiple_registers(k%2, [int(h[k]*1000)])
+            c2.write_multiple_registers(k%2, [int(h[k]*1000)])
             print('put data on modbus')
             #Delivered water from pump 1 and 2:
             self.com_func.readQueue()

@@ -79,7 +79,7 @@ class loc_ctr(Thread):
             # h = self.com_func.get_data(str(k), 1)[0] #Get tank level (will later be sensor measurement)
             h = 0
             while h == 0:
-                h = c.read_holding_registers(k%2, 1)[0]
+                h = c.read_holding_registers(k%2, 1)[0]/1000
             print('h: ', h)
             
             
