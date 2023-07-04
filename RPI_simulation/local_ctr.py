@@ -85,7 +85,7 @@ class loc_ctr(Thread):
             j = 0
             U = np.zeros((simu.M, simu.N))
             while acc and j < ite:
-                print(j)
+                print('ADMM iteration: ', j)
                 # Solve the local opti problem
                 par = simu.c[k:k+simu.M].flatten().tolist()
                 par.extend(simu.d[k:k+simu.M].flatten().tolist())
@@ -97,6 +97,7 @@ class loc_ctr(Thread):
                 par.append(h)
                 par.append(rho)
                 # response =  self.mng.call(par)
+                print('Optimizing...')
                 result = solver.run(p = par)
                 print('got result')
                 # if response.is_ok():
@@ -124,14 +125,14 @@ class loc_ctr(Thread):
                 lamb[j+1,:,:] = lamb[j,:,:] + rho*( U - Uglobal )
                 #Compute accuracy of lambda
                 norm = np.linalg.norm(lamb[j,:,:] - lamb[j-1,:,:], 2) 
-                print('finished computing norm. acc: ', norm)
+                print('Accuracy of lambda: ', norm)
                 #Update j
                 j+=1  
                 u = U[0,self.p_nr]
                 
-            print('j = ', j-1)
+
             #Send the computed u to simulator (will later be input to local pump)
-            # print('sending to sim')
+            print('sending to sim')
             self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
         # self.distribute_shares('0', 'Stop')          
             
