@@ -36,7 +36,7 @@ class simulator(Thread):
         else:
             print('Modbus clint 2 connection failed.')
         
-        plot = plotting('Plot1')
+        plot = plotting('Plot1') 
         q = np.zeros((simu.ite, simu.N))                  #The optimized flows from pumps
         h,V = np.zeros(simu.ite), np.zeros(simu.ite+1)    #Tank level and Volume
         V[0] = tank.h0*tank.area                          #Start Volume
@@ -47,9 +47,9 @@ class simulator(Thread):
             #send to local controllers
             # self.com_func.broadcast_data(h[k],str(k), ips.addr_dict['local_ctr'])   
             data = int(h[k]*100)
-            c1.write_multiple_registers(k%2, [data])
-            c2.write_multiple_registers(k%2, [data])
-            print('put data on modbus: ', data)
+            r1 = c1.write_multiple_registers(k%2, [data])
+            r2 = c2.write_multiple_registers(k%2, [data])
+            print('put data on modbus: ', r1,r2)
             print(c1.read_holding_registers(k%2, 1) )
             #Delivered water from pump 1 and 2:
             self.com_func.readQueue()
