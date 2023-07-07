@@ -19,7 +19,7 @@ from pyModbusTCP.client import ModbusClient
 import sys
 sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/RPI_simulation/my_optimizers/tank_filler")
 import tank_filler
-
+import time
 
 
 
@@ -94,6 +94,7 @@ class loc_ctr(Thread):
             acc = True
             j = 0
             U = np.zeros((simu.M, simu.N))
+            t1 = time.time()
             while acc and j < ite:
                 print('\n ADMM iteration: ', j)
                 # Solve the local opti problem
@@ -141,9 +142,10 @@ class loc_ctr(Thread):
                 j+=1  
                 u = U[0,self.p_nr]
                 
-
+            t2 = time.time()
             #Send the computed u to simulator (will later be input to local pump)
-            print('sending to sim')
+            print('### ', t2-t1 ,'seconds on ', ite, ' ADMM iterations = one ctr input.')
+            
             # c.write_multiple_registers(10, u)
             self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
         # self.distribute_shares('0', 'Stop')          

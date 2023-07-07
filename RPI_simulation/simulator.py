@@ -48,6 +48,12 @@ class simulator(Thread):
             data = int(h[k]*100)
             r1 = c1.write_multiple_registers(k%2, [data])
             r2 = c2.write_multiple_registers(k%2, [data])
+            ####################
+            ### Ugly solution to make sure ctr reads to new value
+            r1 = c1.write_multiple_registers((k-1)%2, [0])
+            r2 = c2.write_multiple_registers((k-1)%2, [0])
+            ### Discuss with carsten how this is fixed in rl :)
+            ####################
             print('put data on modbus: ', r1,r2)
             print(c1.read_holding_registers(k%2, 1) )
             #Delivered water from pump 1 and 2:
