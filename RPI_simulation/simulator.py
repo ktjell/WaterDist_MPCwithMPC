@@ -25,16 +25,15 @@ class simulator(Thread):
     def run(self):
         print('Simulator online')
         c1 = ModbusClient(host=ips.local_ctr_addr[0][0], port=502, unit_id=1, auto_open=True)
-        if c1.open():
-            print('Modbus client 1 succesfully connected')
-        else:
-            print('Modbus clint 1 connection failed.')
+        while not c1.open():
+            c1.open()
+        print('Modbus client 1 succesfully connected')
         
         c2 = ModbusClient(host=ips.local_ctr_addr[1][0], port=502, unit_id=1, auto_open=True)
-        if c2.open():
-            print('Modbus client 2 succesfully connected')
-        else:
-            print('Modbus clint 2 connection failed.')
+        while not c2.open():
+            c2.open()
+        print('Modbus client 2 succesfully connected')
+
         
         plot = plotting('Plot1') 
         q = np.zeros((simu.ite, simu.N))                  #The optimized flows from pumps
