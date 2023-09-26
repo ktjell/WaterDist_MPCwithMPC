@@ -6,13 +6,9 @@ Created on Mon Mar 13 12:03:26 2023
 @author: kst
 """
 
-import scipy.io
-# import cvxpy as cp
-# import pandas as pd
-import sys
-sys.path.append('../Python_simulation')
+# import h5py
 import numpy as np
-
+import scipy.io
 
 
 ## Parameters ####################
@@ -61,29 +57,21 @@ sups = [sup1, sup2]
 
 simu = Simulation('Simu1')
 sample_hourly = 1 # Sample every sample_hourly hour
-simu.sample_hourly = sample_hourly
 simu.dt = sample_hourly*60*60       #[sec] sample time
 simu.simTime = 7*24*3600 #[sec] Sim time 
 ## Demand and electricity prices ####################
-mat1 = scipy.io.loadmat('/Users/kst/Library/CloudStorage/OneDrive-AalborgUniversitet/Software/WaterDist_MPCwithMPC/Python_simulation/data/UserConsumption.mat')  # Simulated demand
-mat2 = scipy.io.loadmat('/Users/kst/Library/CloudStorage/OneDrive-AalborgUniversitet/Software/WaterDist_MPCwithMPC/Python_simulation/data/Elspotprice3mdr.mat')  # Actual electricity prices from https://www.energidataservice.dk/tso-electricity/elspotprices
-# d = mat1['q_u1']#User consumption every 15 min 
-# ld1 = int(len(d)/4)
-# d1 = np.sum(d[:ld1*4].reshape((ld1,4)),axis = 1) #User consumption every hour
-d = mat1['q_u1'][::4] #User consumption every 15 min (so addapt to other dt when necessary)
-# ld = int(len(d)/sample_hourly)
-# d1 = np.sum(d[:ld*sample_hourly].reshape((ld,sample_hourly)),axis = 1) #User consumption every hour
-simu.d = d[::sample_hourly]
-simu.TIME = mat1['time'][::4][::sample_hourly]
+# mat1 = h5py.File('data/UserConsumption.h5', 'r')
+# mat2 = h5py.File('data/Elspotprice3mdr.h5', 'r')
+mat1 = scipy.io.loadmat('data/UserConsumption.mat')  # Simulated demand
+mat2 = scipy.io.loadmat('data/Elspotprice3mdr.mat')  # Actual electricity prices from https://www.energidataservice.dk/tso-electricity/elspotprices
+simu.d = mat1.get('q_u1')[::4][::sample_hourly] #User consumption every 15 min (so addapt to other dt when necessary)
+simu.TIME = mat1.get('time')[::4][::sample_hourly]
 #Convert time to np-time format:
 start = np.datetime64('2023-01-01T00:00') #Chose some starting point
 simu.TIMEformat = start + simu.TIME.astype('timedelta64[m]')
-c0 = mat2['price'] / 1000 #Electricity price hour for hour per kWh
+c0 = np.array(mat2.get('price')) / 1000 #Electricity price hour for hour per kWh
 simu.c = c0[::sample_hourly]#np.repeat(c0, 4) #Electricity prices every hour (so addapt to other dt when necessary)
 
-
-
-print('!')
 
 simu.M = int(24*60*60 / simu.dt )      #24 hours in seconds divided into M steps by dt
 simu.N = 2

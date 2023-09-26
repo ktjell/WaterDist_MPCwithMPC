@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 14 09:10:45 2023
+Created on Tue Aug  1 09:16:23 2023
 
 @author: kst
 """
+
 
 import numpy as np
 import cvxpy as cp
@@ -56,48 +57,60 @@ def opti(sup, i, g, c, h0, lamb, rho, Uglobal, Qextr):
     return U.value[0,i], U.value
 
 
-def optiSeparable(sups, g, c, h0, lambPrev, Uglobal,Qextr):
-    ite = 100
+def optiSeparable(sups, g, c, h0, lambPrev, UglobalPrev,Qextr):
+    ite = 90
     
     lamb = np.zeros((ite+1, simu.N, simu.M, simu.N))
     lamb[0,:,:,:] = lambPrev
+    lamb_hat = lambPrev
     LAMB = np.zeros((ite,simu.N))
+    Uglobal = np.zeros((ite+1, simu.M, simu.N))
+    Uglobal[0,:,:] = UglobalPrev
+    Uglobal_hat = UglobalPrev
     
     Utemp = np.zeros((ite, simu.N, simu.M, simu.N))
     # Uglobal = np.zeros((simu.M,simu.N))
     u = np.zeros((simu.N, ite))
     rho = .1
-
+    alphaO = 1
+    
     acc = True
     j = 0
     while acc and j < ite:
-        # print(j)
+        print(j)
+        #ADMM:
+        #STEP 1: minimization wrt local U
         Uavr = np.zeros((simu.M,simu.N))
         for i in range(simu.N):
             
-            u[i,j], U = opti(sups[i], i, g, c, h0, lamb[j,i,:,:], rho, Uglobal, Qextr[:,i])
+            u[i,j], U = opti(sups[i], i, g, c, h0, lamb_hat[i,:,:], rho, Uglobal_hat, Qextr[:,i])
             Utemp[j,i,:,:] = U
-            Uavr += U + 1/rho * lamb[j,i,:,:]
-        UglobalTemp = Uglobal
-        Uglobal = (1/simu.N) * Uavr     
+            Uavr += U + 1/rho * lamb_hat[i,:,:]
+        #STEP 2: minimization wrt global U
+        Uglobal[j+1,:,:] = (1/simu.N) * Uavr     
         
-        
+        #STEP 3: update lambda
         for i in range(simu.N):
-            lamb[j+1,i,:,:] = lamb[j,i,:,:] + rho*( Utemp[j,i,:,:] - Uglobal )
+            lamb[j+1,i,:,:] = lamb[j,i,:,:] + rho*( Utemp[j,i,:,:] - Uglobal[j+1,:,:] )
             LAMB[j,i] = np.linalg.norm(lamb[j+1,i,:,:],2)
             
-            
+        #Step 4: nesterov acceleration
+        alphaN = (1 + np.sqrt(1+4*alphaO**2)) / 2
+        Uglobal_hat = Uglobal[j+1,:,:] + ((alphaO-1)/alphaN ) * (Uglobal[j+1,:,:]-Uglobal[j,:,:]) 
+        for i in range(simu.N):
+            lamb_hat[i,:,:] = lamb[j+1,i,:,:] + ((alphaO-1)/alphaN ) * (lamb[j+1,i,:,:] - lamb[j,i,:,:])
        
         
         # acc = (np.linalg.norm(Utemp[j,0,:,:] - Utemp[j,1,:,:],2) > 0.01) #Measure the consensus of the U matrix
         acc = (np.linalg.norm(LAMB[j,:] - LAMB[j-1,:], 2) > 0.1)  #>0.9 gives 3 iterations
                                                                   #>0.5 gives 5 ite and still violations 
         j+=1                                                      #>0.3 
+        alphaO = alphaN
     for i in range(simu.N):
         plt.plot(LAMB[:j,i])
     
-        
-    return u[:,j-1], lamb[j,:,:,:], Uglobal, j-1 #return the u[0] calculated by the local ctr
+    
+    return u[:,j-1], lamb[j,:,:,:], Uglobal[j-1,:,:], j-1 #return the u[0] calculated by the local ctr
     # return Uglobal[0,:], lamb[j,:,:,:], Uglobal, j-1   # return the u[0] from the global U
 ## Simulation ###################################
 q = np.zeros((simu.ite,simu.N))    #The optimized flows from pumps

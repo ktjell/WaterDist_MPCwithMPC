@@ -66,6 +66,8 @@ plot = plotting('Plot1')
 cost = np.zeros(simu.N)
 Qextr = np.zeros((simu.M, simu.N))
 
+disturbance = np.random.normal(0,5,(simu.ite))
+
 for k in range(0,simu.ite): 
     try:
         h[k] = V[k]/tank.area   #Level of water in tank: Volume divided by area of tank.
@@ -85,7 +87,7 @@ for k in range(0,simu.ite):
             p[k,i] = sups[i].r * q[k,i]**2 + sups[i].Dz   #Calculate the pressure
 
         
-        dV = sum(q[k,:]) - simu.d[k]      #Change of volume in the tank: the sum of supply minus consumption.
+        dV = sum(q[k,:]) - simu.d[k] + disturbance[k]      #Change of volume in the tank: the sum of supply minus consumption.
         V[k+1] = V[k] + dV                  #Volume in tank: volume of last time stem + change in volume
         ## Done with simulation
         

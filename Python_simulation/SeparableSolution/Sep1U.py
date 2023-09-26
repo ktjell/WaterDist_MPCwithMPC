@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 14 09:10:45 2023
+Created on Wed Jul 12 10:54:25 2023
 
 @author: kst
 """
+
 
 import numpy as np
 import cvxpy as cp
@@ -25,42 +26,58 @@ def f(x, sup):
 def opti(sup, i, g, c, h0, lamb, rho, Uglobal, Qextr):
     
     kappa = 2#0.1
-    U = cp.Variable((simu.M,simu.N))
-    # u = cp.Variable(simu.M)
-    A = np.tril(np.ones((simu.M,simu.M)))
+    U = cp.Variable((simu.M))
+
     cost = 0
+    if i == 0:
+        U1 = Uglobal[:,1]
+        U2 = Uglobal[:,0]
+    else:
+        U1 = Uglobal[:,0]
+        U2 = Uglobal[:,1]
+
     
 
     for k in range(simu.M):
-        cost += c[k] * f(U[k,i],sup)* 3.6 \
-             + sup.K*U[k,i] + cp.power(cp.norm(U[k,i] - U[k-1,i],2),2)    #*3.6 to get from kWh til kWs.
-             
-    cost += kappa* cp.power(cp.norm(np.ones((1,simu.M)) @ (U @ np.ones((simu.N,1)) - g),2),2)\
-          + cp.sum(cp.multiply(lamb , (U-Uglobal))) \
-          + rho/2 * cp.power(cp.norm(U-Uglobal,2),2) 
+        cost += c[k] * f(U[k],sup)* 3.6 \
+             + sup.K*U[k] + cp.power(cp.norm(U[k] - U[k-1],2),2)    #*3.6 to get from kWh til kWs.
+        
+    cost += kappa* cp.power(cp.sum(U) + cp.sum(U1) - cp.sum(g),2)#\
+           # + rho/2 * cp.power(cp.norm(U-U2,2),2) 
+           # + cp.sum(lamb * (U-U2)) \ 
         
           
     constr = [
-              U >= np.zeros((simu.M,simu.N)), 
-              U[:,i] <= np.ones(simu.M)*sup.Qmax,
-              cp.cumsum(U[:,i]) <= np.ones(simu.M)*sup.Vmax - Qextr,
+              U >= np.zeros((simu.M)), 
+              U <= np.ones((simu.M))*sup.Qmax,
+              cp.cumsum(U) <= np.ones((simu.M))*sup.Vmax - Qextr,
               # cp.sum(U[:,i]) <= sup.Vmax,
-              np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) >= np.ones((simu.M,1))*tank.hmin*tank.area,
-              np.ones((simu.M,1))*(h0*tank.area) + A @ (U @ np.ones((simu.N,1)) - g) <= np.ones((simu.M,1))*tank.hmax*tank.area
+              # np.ones((simu.M,))*(h0*tank.area) + cp.cumsum(U) + cp.cumsum(U1) - cp.cumsum(g)  >= np.ones((simu.M,))*tank.hmin*tank.area,
+              # np.ones((simu.M,))*(h0*tank.area) + cp.cumsum(U) + cp.cumsum(U1) - cp.cumsum(g) <= np.ones((simu.M,))*tank.hmax*tank.area
               ]
+    
     
     problem = cp.Problem(cp.Minimize(cost) , constr)
     problem.solve()#solver = cp.MOSEK, mosek_params = {'MSK_DPAR_OPTIMIZER_MAX_TIME':  10.0})
     # status = problem.status
     # if status=='optimal':
-    return U.value[0,i], U.value
+    U3 = np.ones((simu.M,simu.N))
+    if i == 0:
+        U3[:,0] = np.reshape(U.value,((simu.M,)))
+        U3[:,1] = Uglobal[:,1]
+    if i == 1:
+        U3[:,0] = Uglobal[:,0]
+        U3[:,1] = np.reshape(U.value,((simu.M,)))
+    
+    lamb_new = lamb + rho*( np.reshape(U.value,((simu.M,))) - U2 )
+    return U.value[0], U3, lamb_new
 
 
 def optiSeparable(sups, g, c, h0, lambPrev, Uglobal,Qextr):
     ite = 100
     
-    lamb = np.zeros((ite+1, simu.N, simu.M, simu.N))
-    lamb[0,:,:,:] = lambPrev
+    lamb = np.zeros((ite+1, simu.N, simu.M))
+    lamb[0,:,:] = lambPrev
     LAMB = np.zeros((ite,simu.N))
     
     Utemp = np.zeros((ite, simu.N, simu.M, simu.N))
@@ -75,16 +92,16 @@ def optiSeparable(sups, g, c, h0, lambPrev, Uglobal,Qextr):
         Uavr = np.zeros((simu.M,simu.N))
         for i in range(simu.N):
             
-            u[i,j], U = opti(sups[i], i, g, c, h0, lamb[j,i,:,:], rho, Uglobal, Qextr[:,i])
+            u[i,j], U, lamb_new = opti(sups[i], i, g, c, h0, lamb[j,i,:], rho, Uglobal, Qextr[:,i])
+            print(np.shape(lamb_new))
+            lamb[j+1,i,:] = lamb_new
             Utemp[j,i,:,:] = U
-            Uavr += U + 1/rho * lamb[j,i,:,:]
-        UglobalTemp = Uglobal
+            Uavr += U + 1/rho * lamb[j,i,:]
         Uglobal = (1/simu.N) * Uavr     
         
         
         for i in range(simu.N):
-            lamb[j+1,i,:,:] = lamb[j,i,:,:] + rho*( Utemp[j,i,:,:] - Uglobal )
-            LAMB[j,i] = np.linalg.norm(lamb[j+1,i,:,:],2)
+            LAMB[j,i] = np.linalg.norm(lamb[j+1,i,:],2)
             
             
        
@@ -93,11 +110,11 @@ def optiSeparable(sups, g, c, h0, lambPrev, Uglobal,Qextr):
         acc = (np.linalg.norm(LAMB[j,:] - LAMB[j-1,:], 2) > 0.1)  #>0.9 gives 3 iterations
                                                                   #>0.5 gives 5 ite and still violations 
         j+=1                                                      #>0.3 
-    for i in range(simu.N):
-        plt.plot(LAMB[:j,i])
+    # for i in range(simu.N):
+    #     plt.plot(LAMB[:j,i])
     
         
-    return u[:,j-1], lamb[j,:,:,:], Uglobal, j-1 #return the u[0] calculated by the local ctr
+    return u[:,j-1], lamb[j,:,:], Uglobal, j-1 #return the u[0] calculated by the local ctr
     # return Uglobal[0,:], lamb[j,:,:,:], Uglobal, j-1   # return the u[0] from the global U
 ## Simulation ###################################
 q = np.zeros((simu.ite,simu.N))    #The optimized flows from pumps
@@ -108,9 +125,9 @@ V[0] = tank.h0*tank.area                          #Start Volume
 p = np.zeros((simu.ite, simu.N))  #Pressures
 Qextr = np.zeros((simu.M, simu.N))
 Uglobal = np.zeros((simu.M,simu.N))
-lamb = np.zeros((simu.N, simu.M,simu.N))
-plot = plotting('Plot1')
-plt.figure()
+lamb = np.zeros((simu.N, simu.M))
+# plot = plotting('Plot1')
+# plt.figure()
 ####
 javr = 0
 cost = np.zeros(simu.N)

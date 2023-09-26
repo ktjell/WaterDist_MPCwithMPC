@@ -55,16 +55,16 @@ class loc_ctr(Thread):
 
 
     def run(self):
-        print('Local controller ', self.p_nr+1, ' online')
+        print('Local controller for pump ', self.p_nr+1, ' online')
         # self.startSolver()
         solver = tank_filler.solver()
         print('Solver succesfully started.')
-        ip_adr = ips.local_ctr_addr[self.p_nr][0]
-        c = ModbusClient(host=ip_adr, port=501, unit_id=1, auto_open=True)
-        if c.open():
-            print('Modbus client succesfully connected')
+        c_tank = ModbusClient(host=ips.addr_dict['tank'], port=503, unit_id=15, auto_open=True)
+        c_pump = ModbusClient(host = 'localhost', port = 503, unit_id = 15, auto_open = True)
+        if c_tank.open() and c_pump.open():
+            print('Modbus clients succesfully connected')
         else:
-            print('Modbus clint connection failed.')
+            print('Modbus client connection failed.')
         
         Qextr = np.zeros((simu.M))
         Uglobal = np.zeros((simu.M,simu.N))
@@ -76,10 +76,7 @@ class loc_ctr(Thread):
         for k in range(simu.ite):
             
             #get data
-            # h = self.com_func.get_data(str(k), 1)[0] #Get tank level (will later be sensor measurement)
-            h = 0
-            while h == 0:
-                h = c.read_holding_registers(k%2, 1)[0]
+            h = c_tank.read_input_registers(5, 1)
                 
             print('h: ', h)
             h = h/100
@@ -107,21 +104,14 @@ class loc_ctr(Thread):
                 par.extend(Uglobal[:,1].flatten().tolist())
                 par.append(h)
                 par.append(rho)
-                # response =  self.mng.call(par)
+    
                 print('Optimizing...')
                 result = solver.run(p = par)
                 print('got result')
-                # if response.is_ok():
-                #     # Solver returned a solution
-                #     solution_data = response.get()
+  
                 s = result.solution
                 U[:,0] = s[:simu.M]
                 U[:,1] = s[simu.M:]
-                # else:
-                #     print('opti error')
-                #     break
-                
-                
 
                 #Value to send to cloud to compute sum
                 to_sum = U + 1/rho * lamb[j,:,:]
@@ -143,10 +133,11 @@ class loc_ctr(Thread):
                 u = U[0,self.p_nr]
                 
             t2 = time.time()
-            #Send the computed u to simulator (will later be input to local pump)
+    
             print('### ', t2-t1 ,'seconds on ', ite, ' ADMM iterations = one ctr input.')
             
-            # c.write_multiple_registers(10, u)
-            self.com_func.broadcast_data(u, str(k), ips.addr_dict['simulator'])
-        # self.distribute_shares('0', 'Stop')          
+            #set input on local pump
+            #Here add PI control from Carsten!
+            
+            c_pump.write_multiple_registers(10, u)
             
