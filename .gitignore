@@ -130,3 +130,4 @@ dmypy.json
 Python_simulation/SeparableSolution/.DS_Store
 Python_simulation/SeparableSolution/OpenGenSolution/
 Python_simulation/TestOptimizers/
+RPI_simulation/TestOptimizers/
