@@ -127,6 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+my_optimizers
 Python_simulation/SeparableSolution/.DS_Store
 Python_simulation/SeparableSolution/OpenGenSolution/
 Python_simulation/TestOptimizers/
