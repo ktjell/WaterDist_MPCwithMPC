@@ -10,7 +10,7 @@ import sys
 sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/my_optimizers/tester")
 import tester
 
-y = 16
+y = [16]
 
 solver = tester.solver()
 print('Solver succesfully started.')
