@@ -20,7 +20,7 @@ def f(x, y):
     
 
 x = cs.SX.sym('x', 1)
-y = cs.SX.sym('p', 1)
+y = cs.SX.sym('p')
 
 
 cost = f(x,y)
