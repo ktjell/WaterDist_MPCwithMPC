@@ -8,7 +8,6 @@ Created on Fri May 12 09:30:06 2023
 
 from threading import Thread
 from ip_config import ipconfigs as ips
-from parameters import simu
 from communication_setup import com_functions
 
 class cloud_server(Thread):
