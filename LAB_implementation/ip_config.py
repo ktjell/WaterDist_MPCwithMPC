@@ -15,7 +15,7 @@ class ipconfigs:
                       ]
     
     tank_addr = [
-                     ['192.168.100.31', 62]   #Simulator
+                     ['192.168.100.31', 503]   #Tank
                      ]
     
     cloud_addr = [
