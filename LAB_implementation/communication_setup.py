@@ -42,7 +42,7 @@ def setup_com(name, connect_to):
     
     
     #Get party number according to ip adress and ip_config file.
-    ipv4 = os.popen('ip addr show eth0').read().split("inet ")[1].split("/")[0]
+    ipv4 = os.popen('ip addr show eth1').read().split("inet ")[1].split("/")[0]
     pnr = ips.addr_dict[name].index([ipv4, ips.port])
     receive_queue = que.Queue()  #Rec data queue
     

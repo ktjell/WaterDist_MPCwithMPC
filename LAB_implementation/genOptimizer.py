@@ -17,7 +17,7 @@ from ip_config import ipconfigs as ips
 from parameters import sups, tank, simu
 
 
-ipv4 = os.popen('ip addr show eth0').read().split("inet ")[1].split("/")[0]
+ipv4 = os.popen('ip addr show eth1').read().split("inet ")[1].split("/")[0]
 pnr = ips.addr_dict['local_ctr'].index([ipv4, ips.port])
 
 
