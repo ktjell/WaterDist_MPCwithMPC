@@ -17,7 +17,7 @@ from communication_setup import com_functions
 from pyModbusTCP.client import ModbusClient
 ##With python module interface
 import sys
-sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/RPI_simulation/my_optimizers/tank_filler")
+sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/LAB_implementation/my_optimizers/tank_filler")
 import tank_filler
 import time
 
@@ -41,25 +41,13 @@ class loc_ctr(Thread):
         shares = self.com_func.get_data(name, len(ips.addr_dict['cloud']))
         # print(shares)
         return self.ss.recon_matrix_secret(shares)
-    
-    ################################################
-    ## MPC optimization #########################
-    
-    # def startSolver(self):
-    #     mng = og.tcp.OptimizerTcpManager('my_optimizers/tank_filler')
-    #     mng.start()
-
-    #     mng.ping()                 # check if the server is alive
-        
-    #     self.mng = mng
-
 
     def run(self):
         print('Local controller for pump ', self.p_nr+1, ' online')
         # self.startSolver()
         solver = tank_filler.solver()
         print('Solver succesfully started.')
-        c_tank = ModbusClient(host=ips.addr_dict['tank'], port=503, unit_id=15, auto_open=True)
+        c_tank = ModbusClient(host=ips.addr_dict['tank'][0][0], port=503, unit_id=15, auto_open=True)
         c_pump = ModbusClient(host = 'localhost', port = 503, unit_id = 15, auto_open = True)
         if c_tank.open() and c_pump.open():
             print('Modbus clients succesfully connected')
@@ -76,7 +64,7 @@ class loc_ctr(Thread):
         for k in range(simu.ite):
             
             #get data
-            h = c_tank.read_input_registers(5, 1)
+            h = c_tank.read_input_registers(7, 1)[0]
                 
             print('h: ', h)
             h = h/100
@@ -127,17 +115,17 @@ class loc_ctr(Thread):
                 lamb[j+1,:,:] = lamb[j,:,:] + rho*( U - Uglobal )
                 #Compute accuracy of lambda
                 norm = np.linalg.norm(lamb[j,:,:] - lamb[j-1,:,:], 2) 
-                print('Accuracy of lambda: ', norm)
+                print('Lambda "error": ', norm)
                 #Update j
                 j+=1  
                 u = U[0,self.p_nr]
                 
             t2 = time.time()
     
-            print('### ', t2-t1 ,'seconds on ', ite, ' ADMM iterations = one ctr input.')
+            print('### ', t2-t1 ,'seconds on ', ite, ' ADMM iterations: ', u)
             
             #set input on local pump
             #Here add PI control from Carsten!
             
-            c_pump.write_multiple_registers(10, u)
+            #c_pump.write_multiple_registers(10, u)
             

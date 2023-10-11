@@ -24,3 +24,5 @@ class ipconfigs:
                   # ['192.168.100.6', 62]  #-
                   ]
     addr_dict = {'local_ctr':local_ctr_addr, 'tank':tank_addr, 'cloud':cloud_addr}
+    
+ip = ipconfigs()
