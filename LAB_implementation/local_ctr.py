@@ -12,7 +12,6 @@ from threading import Thread
 import tcp_socket as sock
 from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
-from parameters import sups, tank, simu
 from communication_setup import com_functions
 from pyModbusTCP.client import ModbusClient
 ##With python module interface

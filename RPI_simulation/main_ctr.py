@@ -42,7 +42,7 @@ class modbus(Thread):
 
 #Setup communication
 ## Prepare to receive data:
-pnr, rec_q = setup_com('local_ctr', ['cloud', 'simulator'])
+pnr, rec_q = setup_com('local_ctr', ['cloud', 'simulator'], 'ip addr show eth1')
 
 
 #Initialize and run the local controller

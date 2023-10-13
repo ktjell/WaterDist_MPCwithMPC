@@ -10,7 +10,7 @@ from cloud import cloud_server
 
 #Setup communication
 ## Prepare to receive data:
-p_nr, rec_q = setup_com('cloud', ['local_ctr'])
+p_nr, rec_q = setup_com('cloud', ['local_ctr'], 'ip addr show eth0')
 
 
 #Initialize and run the cloud

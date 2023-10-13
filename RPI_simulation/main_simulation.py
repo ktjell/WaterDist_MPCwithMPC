@@ -11,7 +11,7 @@ from simulator import simulator
 
 #Setup communication
 ## Prepare to receive data:
-p_nr, rec_q = setup_com('simulator', ['local_ctr'])
+p_nr, rec_q = setup_com('simulator', ['local_ctr'], 'ip addr show eth1')
 
 
 #Initialize and run the simulator
