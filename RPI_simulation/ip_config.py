@@ -19,8 +19,8 @@ class ipconfigs:
                      ]
     
     cloud_addr = [
-                  ['192.168.100.30', 62], #party 0: Cloud 1
-                  ['192.168.100.31', 62], #party 1: Cloud 2
+                  ['192.168.100.1', 62], #party 0: Cloud 1
+                  ['192.168.100.2', 62], #party 1: Cloud 2
                   # ['192.168.100.6', 62]  #-
                   ]
     addr_dict = {'local_ctr':local_ctr_addr, 'simulator':simulator_addr, 'cloud':cloud_addr}
