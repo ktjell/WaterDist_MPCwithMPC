@@ -13,7 +13,7 @@ import queue as que
 import os
 from ip_config import ipconfigs as ips
 
-def setup_com(name, connect_to, , ip_addr_show):
+def setup_com(name, connect_to, ip_addr_show):
     #Setup communication line
     class TCP_Thread (Thread):
        stop = False  
