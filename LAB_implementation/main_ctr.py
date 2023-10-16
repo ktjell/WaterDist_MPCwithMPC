@@ -11,7 +11,7 @@ from communication_setup import setup_com
 
 #Setup communication
 ## Prepare to receive data:
-pnr, rec_q = setup_com('local_ctr', ['cloud', 'tank'], 'ip addr show eth1')
+pnr, rec_q = setup_com('local_ctr', ['cloud'], 'ip addr show eth1')
 
 
 #Initialize and run the local controller
