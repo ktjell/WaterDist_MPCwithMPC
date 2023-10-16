@@ -65,9 +65,9 @@ class loc_ctr(Thread):
             
             #get data
             h = c_tank.read_input_registers(7, 1)[0]
-                
+            h = h/100   
             print('h: ', h)
-            h = h/100
+            
             
             #Reset lambda and use the last lambda from the previous round 
             lamb_temp = lamb[j-1,:,:]
