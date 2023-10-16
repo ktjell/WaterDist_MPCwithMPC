@@ -10,6 +10,7 @@ Created on Thu Jun 15 12:30:24 2023
 import numpy as np
 from threading import Thread
 import tcp_socket as sock
+from parameters import simu
 from shamir_real_number import secret_sharing as ss
 from ip_config import ipconfigs as ips
 from communication_setup import com_functions
@@ -66,7 +67,7 @@ class loc_ctr(Thread):
             h = c_tank.read_input_registers(7, 1)[0]
                 
             print('h: ', h)
-            h = h/100
+            # h = h/100
             
             #Reset lambda and use the last lambda from the previous round 
             lamb_temp = lamb[j-1,:,:]
