@@ -14,4 +14,6 @@ if c.open():
 else:
     print('Modbus client connection failed.')
     
-c.write_multiple_registers(3, [100])
+on = 100*100
+    
+c.write_multiple_registers(3, [on])
