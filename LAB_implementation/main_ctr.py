@@ -39,6 +39,7 @@ sim = simulator(q_sim)        #Simulator used for local plotting
 
 ## Use MPCctr to find start flow
 h = c_tank.read_input_registers(7, 1)[0] /100  #get level in tank
+print('Start level: ', h)
 start_flow = mpc.MPC(h)
 
 ##########  Start the controllers

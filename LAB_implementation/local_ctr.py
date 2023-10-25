@@ -122,6 +122,7 @@ class MPC_ctr():
         while acc and j < self.ite:
             print('\n ADMM iteration: ', j)
             # Solve the local opti problem
+            # price, demand, extr, lamb, Uglobal, h0, rho
             par = model.el_price[self.k:self.k+model.M].flatten().tolist()
             par.extend(model.consum_profile[self.k:self.k+model.M].flatten().tolist())
             par.extend(self.Qex.flatten().tolist())
@@ -131,6 +132,7 @@ class MPC_ctr():
             par.extend(self.Uglobal[:,1].flatten().tolist())
             par.append(h)
             par.append(self.rho)
+            print(par)
 
             print('Optimizing...')
             result = self.solver.run(p = par)
