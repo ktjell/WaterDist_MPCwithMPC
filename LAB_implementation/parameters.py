@@ -28,7 +28,7 @@ class Model:
 tank = Tank('Tank1')
 tank.area = 0.283 #240             #[m^2] tank area
 tank.height = 0.7                  #[m] tank height
-tank.hmin = 0.3   #2.4             #[m] min level in the tank
+tank.hmin = 0.1   #2.4             #[m] min level in the tank
 tank.hmax = 0.6   #3.2             #[m] max level in the tank
 
 ### Parameters for the pumping stations
@@ -80,7 +80,7 @@ def consum_profile(t):
     except:
         dc = demandMult * v
     
-    return dc #np.sum(dc,axis = 0).flatten() #We care about the summed consumption
+    return np.sum(dc,axis = 1).flatten() #We care about the summed consumption
 
 ### Parameters for the model and the eksperiment
 model = Model('Model1')

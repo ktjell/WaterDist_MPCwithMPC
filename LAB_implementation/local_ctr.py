@@ -165,7 +165,7 @@ class MPC_ctr():
             self.Qextr[(self.k%model.M)] = u
             self.Qex = np.cumsum(self.Qextr[::-1])[::-1]
             
-            self.k += 1
+        self.k += 1
             
         t2 = time.time()
 

@@ -38,7 +38,7 @@ q_sim = que.Queue()
 sim = simulator(q_sim)        #Simulator used for local plotting
 
 ## Use MPCctr to find start flow
-h = c_tank.read_input_registers(7, 1)[0] /100  #get level in tank
+h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
 print('Start level: ', h)
 start_flow = mpc.MPC(h)
 
@@ -58,7 +58,7 @@ sim.start()
 
 # for i in range(model.ite):
 for i in range(2):
-    h = c_tank.read_input_registers(7, 1)[0] /100  #get level in tank
+    h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
     print('Level in tank: ', h)
     new_flow = mpc.MPC(h)
     time.sleep(60*5 - ((time.monotonic() - starttime) % 60*5))
