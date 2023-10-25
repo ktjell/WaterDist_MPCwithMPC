@@ -97,6 +97,7 @@ class MPC_ctr():
         self.solver = tank_filler.solver()
         #Prepare variables that are reused
         self.Qextr = np.zeros((model.M))
+        self.Qex = np.cumsum(self.Qextr[::-1])[::-1]
         self.Uglobal = np.zeros((model.M,model.N))
         self.lamb = np.zeros((model.M, model.N))
         self.rho = .8
