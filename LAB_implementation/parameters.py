@@ -30,7 +30,7 @@ tank.area = 0.283 #240             #[m^2] tank area
 tank.height = 0.7                  #[m] tank height
 tank.hmin = 0.1   #2.4             #[m] min level in the tank
 tank.hmax = 0.6   #3.2             #[m] max level in the tank
-
+tank.h0 = 0.12
 ### Parameters for the pumping stations
 Qdesign = 40    
 ## Pump station 1  

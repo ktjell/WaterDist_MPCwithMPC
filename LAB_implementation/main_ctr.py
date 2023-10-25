@@ -10,7 +10,7 @@ from local_ctr import PID_ctr, MPC_ctr, OnOff_ctr
 from ip_config import ips
 from plotter_ctr import simulator
 from communication_setup import setup_com, ModBusCom   
-from parameters import model
+from parameters import model, tank
 import queue as que
 from pyModbusTCP.client import ModbusClient
 import time

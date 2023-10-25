@@ -132,7 +132,6 @@ class MPC_ctr():
             par.extend(self.Uglobal[:,1].flatten().tolist())
             par.append(h)
             par.append(self.rho)
-            print(par)
 
             print('Optimizing...')
             result = self.solver.run(p = par)
