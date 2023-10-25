@@ -17,3 +17,5 @@ else:
 on = 100*100
     
 c.write_multiple_registers(3, [on])
+
+c.close()

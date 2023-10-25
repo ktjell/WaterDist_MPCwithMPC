@@ -6,9 +6,9 @@ Created on Mon Mar 13 12:14:49 2023
 @author: kst
 """
 import matplotlib.pylab as plt
-import matplotlib.dates as md
+# import matplotlib.dates as md
 import numpy as np
-from parameters import sups, tank, simu
+from parameters import p_sts, tank, model
 # from parameters import simu, tank, sups
 
 class plotting:
@@ -54,15 +54,15 @@ class plotting:
     
 
         
-    def updatePlot(self, k, h, q,d ):
+    def updatePlot(self, k, h, q, d):
 
-        t = simu.TIMEformat[:k]
+        t = model.sampling_times[:k]
         ## Update plot!
         #Requirements:
         self.lineh1.set_data(t, np.ones(k)*tank.hmin)
         self.lineh2.set_data(t, np.ones(k)*tank.hmax)
-        self.lineq1.set_data(t, np.ones(k)*sups[0].Qmax)
-        self.lineq2.set_data(t, np.ones(k)*sups[1].Qmax,)
+        self.lineq1.set_data(t, np.ones(k)*p_sts[0].Qmax)
+        self.lineq2.set_data(t, np.ones(k)*p_sts[1].Qmax,)
 
         
         self.line_h.set_data(t, h)
@@ -75,6 +75,6 @@ class plotting:
             a.relim() 
             a.autoscale_view(True,True,True) 
         self.f.canvas.draw()
-        plt.pause(0.0005)
+        plt.pause(0.1)
 
     ####

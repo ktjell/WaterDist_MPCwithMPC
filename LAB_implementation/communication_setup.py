@@ -12,6 +12,15 @@ import time
 import queue as que
 import os
 from ip_config import ipconfigs as ips
+from pyModbusTCP.client import ModbusClient
+
+class ModBusCom():
+    def __init__(self):
+        self.local_c = ModbusClient(host = 'localhost', port = 502, unit_id = 15, auto_open = True) #For CCU communication
+    
+    def ext_Modbus(self, add):
+        return ModbusClient(host = add, port = 502, unit_id = 15, auto_open = True) #For CCU communication
+     
 
 def setup_com(name, connect_to, ip_addr_show):
     #Setup communication line
@@ -77,8 +86,6 @@ class com_functions:
             b = self.rec_q.get()[1]
             self.rec_dict[b[0]] = b[1]
 
-            
-    
     def get_data(self, name, n):
         res = []
         for i in range(n):
