@@ -25,4 +25,4 @@ class ipconfigs:
                   ]
     addr_dict = {'local_ctr':local_ctr_addr, 'tank':tank_addr, 'cloud':cloud_addr}
     
-ip = ipconfigs()
+ips = ipconfigs()
