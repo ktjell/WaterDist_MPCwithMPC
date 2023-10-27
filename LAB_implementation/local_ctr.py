@@ -42,7 +42,7 @@ class PID_ctr(Thread):
         while self.on: 
             # Get data
             if not self.q.empty():
-                self.u = self.q.get()[0]
+                self.u = self.q.get()
                 
             meas_flow = self.c.read_input_registers(11, 1)[0]
          
@@ -67,7 +67,7 @@ class PID_ctr(Thread):
             elif p_in < p_sts[self.p_nr].stepdown_speed:
                 self.num_running_pumps -= 1
             self.num_running_pumps = max(self.num_running_pumps, 1)
-            self.num_running_pumps = min(self.num_running_pumps, p_sts[self.pnr].num_of_pumps)
+            self.num_running_pumps = min(self.num_running_pumps, p_sts[self.p_nr].num_of_pumps)
                 
             #Adjust pump settings
             old_pump_setting = new_pump_setting

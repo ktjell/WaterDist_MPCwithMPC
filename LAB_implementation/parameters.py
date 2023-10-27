@@ -52,9 +52,9 @@ pump_st2.Vmax = 12*60            #[m**3/day] Extraction permit
 pump_st2.Qmax = Qdesign          #[m^3/h] Maximum flow that the pumps can deliver
 pump_st2.K = 5                   #[kr/m^3] Cost of producing water
 pump_st2.p0 = 0                  # presssure "before" pumping stations
-pump_st1.num_of_pumps = 3        #number of flow steps 
-pump_st1.stepup_speed = 95
-pump_st1.stepdown_speed = 80
+pump_st2.num_of_pumps = 3        #number of flow steps 
+pump_st2.stepup_speed = 95
+pump_st2.stepdown_speed = 80
 
 p_sts = [pump_st1, pump_st2]
 
