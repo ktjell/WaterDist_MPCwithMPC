@@ -49,7 +49,6 @@ class PID_ctr(Thread):
             #Pressure control
             err = self.u - meas_flow
             p_in = self.Kp*err + self.Ki*self.zeta
-            print(meas_flow, self.u, p_in)
             
             if p_in < 0:
                 p_in = 0
