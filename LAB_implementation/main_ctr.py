@@ -36,7 +36,7 @@ q_pid = que.Queue()
 pid = PID_ctr(p_nr, q_pid)    #PID controller
 q_sim = que.Queue()     
 onOff = OnOff_ctr()           #On-off controller to suppli local pump tanks with water from consumer
-sim = simulator(q_sim)        #Simulator used for local plotting
+# sim = simulator(q_sim)        #Simulator used for local plotting
 
 
 ## Use MPCctr to find start flow
@@ -55,7 +55,7 @@ pid.Ki = 0.1
 pid.start()
 
 #Run simulator for plotting
-sim.start()
+# sim.start()
 
 # for i in range(model.ite):
 for i in range(2):
@@ -66,14 +66,14 @@ for i in range(2):
     q_pid.put(new_flow[p_nr])
     t = (time.monotonic() - starttime)/60
     print('New flow calculated at %.2f' %t, new_flow[p_nr])
-    q_sim.put(new_flow)
+    # q_sim.put(new_flow)
 
 pid.on = False
 onOff.on = False
-sim.on = False
+# sim.on = False
 print('Waiting on threads to finish.')
 pid.join()
 onOff.join()
-sim.join()
+# sim.join()
 print('Control stopped')
     

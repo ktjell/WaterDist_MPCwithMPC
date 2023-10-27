@@ -24,7 +24,6 @@ class simulator(Thread):
         q = np.zeros((model.ite, model.N))                  #The optimized flows from pumps
         h,V = np.zeros(model.ite), np.zeros(model.ite+1)    #Tank level and Volume
         V[0] = tank.h0*tank.area                          #Start Volume
-        self.com_func.readQueue()
         k = 0
         while self.on:
             #Level of water in tank: Volume divided by area of tank:
