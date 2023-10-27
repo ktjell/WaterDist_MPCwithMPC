@@ -34,11 +34,11 @@ class simulator(Thread):
                 time.sleep(1)
             q[k,:] = self.rec_q.get()
             #Change of volume in the tank: the sum of supply minus consumption.
-            dV = sum(q[k,:]) - model.consumption_profile[k]      
+            dV = sum(q[k,:]) - model.consum_profile[k]      
             #Volume in tank: volume of last time step + change in volume
             V[k+1] = V[k] + dV                  
             ## Done with simulation
-            plot.updatePlot(k+1, h[:k+1], q[:k+1,:],model.consumption_profile[:k+1])
+            plot.updatePlot(k+1, h[:k+1], q[:k+1,:],model.consum_profile[:k+1])
             k+=1
             
  
