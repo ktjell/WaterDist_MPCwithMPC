@@ -38,6 +38,7 @@ class PID_ctr(Thread):
         self.c.write_multiple_registers(5, new_setting)
         
     def run(self):
+        new_pump_setting =np.array([0,0,0])
         while self.on: 
             # Get data
             if not self.q.empty():
@@ -68,10 +69,12 @@ class PID_ctr(Thread):
             self.num_running_pumps = min(self.num_running_pumps, p_sts[self.pnr].num_of_pumps)
                 
             #Adjust pump settings
+            old_pump_setting = new_pump_setting
             new_pump_setting = np.zeros(p_sts[self.p_nr].num_of_pumps)
             new_pump_setting[:self.num_running_pumps] = int(p_in)
             # self.set_pump_setting(list(new_pump_setting))
-            print('New pump set PID:', new_pump_setting)
+            if np.any(old_pump_setting != new_pump_setting):
+                print('New pump set PID:', new_pump_setting)
         
         #Test ended
         self.set_pump_setting([0]*p_sts[self.pnr].num_of_pumps)  #Turn off all pumps
@@ -120,7 +123,7 @@ class MPC_ctr():
         U = np.zeros((model.M, model.N))
         t1 = time.time()
         while acc and j < self.ite:
-            print('\n ADMM iteration: ', j)
+            # print('\n ADMM iteration: ', j)
             # Solve the local opti problem
             # price, demand, extr, lamb, Uglobal, h0, rho
             par = model.el_price[self.k:self.k+model.M].flatten().tolist()
@@ -133,9 +136,9 @@ class MPC_ctr():
             par.append(h)
             par.append(self.rho)
 
-            print('Optimizing...')
+            # print('Optimizing...')
             result = self.solver.run(p = par)
-            print('got result')
+            # print('got result')
   
             s = result.solution
             U[:,0] = s[:model.M]
@@ -143,12 +146,12 @@ class MPC_ctr():
 
             #Value to send to cloud to compute sum
             to_sum = U + 1/self.rho * self.lamb
-            print('sending to cloud')
+            # print('sending to cloud')
             self.distribute_shares('0', to_sum)
             #Get sum of local U's back from cloud and compute Uglobal as the average. 
-            print('Waiting on cloud...')
+            # print('Waiting on cloud...')
             Usum = self.reconstruct_secret('0')
-            print('recieved from cloud')
+            # print('recieved from cloud')
             Uglobal = (1/model.N) * Usum
             
             #Update local lambda
@@ -156,7 +159,7 @@ class MPC_ctr():
             self.lamb = lamb_temp + self.rho*( U - Uglobal )
             #Compute accuracy of lambda
             norm = np.linalg.norm(self.lamb - lamb_temp, 2) 
-            print('Lambda "error": ', norm)
+            # print('Lambda "error": ', norm)
             #Update j
             j+=1  
             u = U[0,self.p_nr]
@@ -178,22 +181,25 @@ class OnOff_ctr(Thread):
         MB = ModBusCom()
         self.c = MB.local_c
         self.on = True
+        
     
     def set_pump_setting(self, new_setting):
         self.c.write_multiple_registers(8, new_setting)
         
     def run(self):
+        new_pump_setting = 0
         while self.on: 
             # Get data            
             meas_dp = self.c.read_input_registers(4, 1)[0]
-                     
+            old_pump_setting = new_pump_setting
             #Adjust pump setting
             if meas_dp < 80:
                 new_pump_setting = 100
             
             elif meas_dp > 450:
                 new_pump_setting = 0
-            print('New pump setting OnOff: ', meas_dp, new_pump_setting)
+            if new_pump_setting != old_pump_setting:
+                print('New pump setting OnOff: ', meas_dp, new_pump_setting)
             # self.set_pump_setting([new_pump_setting]*2)
         
         #Test ended
