@@ -59,6 +59,7 @@ pid.start()
 
 # for i in range(model.ite):
 for i in range(2):
+    print('OUTER ITERATION:', i)
     h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
     print('Level in tank: ', h)
     new_flow = mpc.MPC(h)
