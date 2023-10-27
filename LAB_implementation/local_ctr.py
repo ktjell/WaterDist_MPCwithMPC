@@ -77,7 +77,7 @@ class PID_ctr(Thread):
                 print('New pump set PID:', new_pump_setting)
         
         #Test ended
-        self.set_pump_setting([0]*p_sts[self.pnr].num_of_pumps)  #Turn off all pumps
+        self.set_pump_setting([0]*p_sts[self.p_nr].num_of_pumps)  #Turn off all pumps
         print('Pumps 1,2 and 3 turned off')
         print('PID controller off')
 

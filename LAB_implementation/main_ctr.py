@@ -57,15 +57,14 @@ pid.start()
 
 #Run simulator for plotting
 sim.start()
-
+upd_time = 1 #Update MPC control every upd_time minute
 # for i in range(model.ite):
-for i in range(2):
+for i in range(4):
     print('OUTER ITERATION:', i)
     h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
     print('Level in tank: ', h)
     new_flow = mpc.MPC(h)
-    time.sleep(60*2 - ((time.monotonic() - starttime) % (60*2)))
-    print('sleept ', (60*2 - ((time.monotonic() - starttime) % (60*2)))/60, 'min')
+    time.sleep(60*upd_time - ((time.monotonic() - starttime) % (60*upd_time)))
     q_pid.put(new_flow[p_nr])
     t = (time.monotonic() - starttime)/60
     print('New flow calculated at %.2f' %t, new_flow[p_nr])
