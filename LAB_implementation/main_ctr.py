@@ -63,7 +63,8 @@ for i in range(2):
     h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
     print('Level in tank: ', h)
     new_flow = mpc.MPC(h)
-    time.sleep(60*5 - ((time.monotonic() - starttime) % 60*5))
+    time.sleep(60*5 - ((time.monotonic() - starttime) % (60*5)))
+    print('sleept ', 60*5 - ((time.monotonic() - starttime) % (60*5))/60, 'min')
     q_pid.put(new_flow[p_nr])
     t = (time.monotonic() - starttime)/60
     print('New flow calculated at %.2f' %t, new_flow[p_nr])

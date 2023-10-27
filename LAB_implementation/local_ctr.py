@@ -42,14 +42,14 @@ class PID_ctr(Thread):
         while self.on: 
             # Get data
             if not self.q.empty():
-                self.u = self.q.get()
+                self.u = self.q.get()[0]
                 
             meas_flow = self.c.read_input_registers(11, 1)[0]
          
             #Pressure control
             err = self.u - meas_flow
             p_in = self.Kp*err + self.Ki*self.zeta
-            print(meas_flow, p_in)
+            # print(meas_flow, p_in)
             
             if p_in < 0:
                 p_in = 0
