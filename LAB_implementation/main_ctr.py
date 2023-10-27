@@ -43,13 +43,14 @@ onOff = OnOff_ctr()           #On-off controller to suppli local pump tanks with
 h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
 print('Start level: ', h)
 start_flow = mpc.MPC(h)
+print('Start flow', start_flow[p_nr])
 
 ##########  Start the controllers
 #Start on-off control for the "extra" pumps that fills the tank to supply the "real" pumps.
 onOff.start()
 
 #Run the local PID controller
-pid.u = start_flow
+pid.u = start_flow[p_nr]
 pid.Kp = 0.1
 pid.Ki = 0.1
 pid.start()
