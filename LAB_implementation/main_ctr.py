@@ -35,7 +35,9 @@ mpc = MPC_ctr(p_nr, rec_q)    #MPC controller
 q_pid = que.Queue()
 pid = PID_ctr(p_nr, q_pid)    #PID controller
 q_sim = que.Queue()     
+onOff = OnOff_ctr()           #On-off controller to suppli local pump tanks with water from consumer
 sim = simulator(q_sim)        #Simulator used for local plotting
+
 
 ## Use MPCctr to find start flow
 h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
@@ -44,7 +46,6 @@ start_flow = mpc.MPC(h)
 
 ##########  Start the controllers
 #Start on-off control for the "extra" pumps that fills the tank to supply the "real" pumps.
-onOff = OnOff_ctr()
 onOff.start()
 
 #Run the local PID controller
@@ -69,5 +70,10 @@ for i in range(2):
 
 pid.on = False
 onOff.on = False
+sim.on = False
+print('Waiting on threads to finish.')
+pid.join()
+onOff.join()
+sim.join()
 print('Control stopped')
     

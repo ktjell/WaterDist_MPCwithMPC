@@ -6,14 +6,10 @@ Created on Tue Oct 24 11:43:05 2023
 @author: kst
 """
 
-
 import numpy as np
 from threading import Thread
-from ip_config import ipconfigs as ips
 from parameters import tank, model
-from communication_setup import com_functions
 from plotting import plotting
-from pyModbusTCP.client import ModbusClient
 import time
 
 class simulator(Thread):
