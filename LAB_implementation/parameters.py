@@ -27,7 +27,7 @@ class Model:
 #### Parameters for the resevoir
 tank = Tank('Tank1')
 tank.area = 0.283 #240             #[m^2] tank area
-tank.height = 0.7                  #[m] tank height
+tank.height = 0.706                #[m] tank height
 tank.hmin = 0.1   #2.4             #[m] min level in the tank
 tank.hmax = 0.6   #3.2             #[m] max level in the tank
 tank.h0 = 0.12
