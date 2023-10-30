@@ -72,7 +72,7 @@ class PID_ctr(Thread):
             old_pump_setting = new_pump_setting
             new_pump_setting = np.zeros(p_sts[self.p_nr].num_of_pumps)
             new_pump_setting[:self.num_running_pumps] = int(p_in)
-            # self.set_pump_setting(list(new_pump_setting))
+            self.set_pump_setting(list(new_pump_setting))
             if np.any(old_pump_setting != new_pump_setting):
                 print('New pump set PID:', new_pump_setting)
         
@@ -200,7 +200,7 @@ class OnOff_ctr(Thread):
                 new_pump_setting = 0
             if new_pump_setting != old_pump_setting:
                 print('New pump setting OnOff: ', meas_dp, new_pump_setting)
-            # self.set_pump_setting([new_pump_setting]*2)
+            self.set_pump_setting([new_pump_setting]*2)
         
         #Test ended
         self.set_pump_setting([0]*2)  #Turn off all pumps

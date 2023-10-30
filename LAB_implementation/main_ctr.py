@@ -59,7 +59,7 @@ pid.start()
 # sim.start()
 upd_time = 1 #Update MPC control every upd_time minute
 # for i in range(model.ite):
-for i in range(4):
+for i in range(10):
     print('OUTER ITERATION:', i)
     h = c_tank.read_input_registers(7, 1)[0] /1000  #get level in tank from mm to m
     print('Level in tank: ', h)
