@@ -17,7 +17,7 @@ from communication_setup import com_functions
 from pyModbusTCP.client import ModbusClient
 ##With python module interface
 import sys
-sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/RPI_implementation/my_optimizers/tank_filler")
+sys.path.insert(1, "/home/pi/WaterDist_MPCwithMPC/RPI_simulation/my_optimizers/tank_filler")
 import tank_filler
 import time
 
