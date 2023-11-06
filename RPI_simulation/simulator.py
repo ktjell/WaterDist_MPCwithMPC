@@ -24,12 +24,12 @@ class simulator(Thread):
    
     def run(self):
         print('Simulator online')
-        c1 = ModbusClient(host=ips.local_ctr_addr[0][0], port=501, unit_id=1, auto_open=True)
+        c1 = ModbusClient(host=ips.local_ctr_addr[0][0], port=502, unit_id=1, auto_open=True)
         while not c1.open():
             c1.open()
         print('Modbus client 1 succesfully connected')
         
-        c2 = ModbusClient(host=ips.local_ctr_addr[1][0], port=501, unit_id=1, auto_open=True)
+        c2 = ModbusClient(host=ips.local_ctr_addr[1][0], port=502, unit_id=1, auto_open=True)
         while not c2.open():
             c2.open()
         print('Modbus client 2 succesfully connected')
