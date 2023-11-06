@@ -60,7 +60,7 @@ class loc_ctr(Thread):
         solver = tank_filler.solver()
         print('Solver succesfully started.')
         ip_adr = ips.local_ctr_addr[self.p_nr][0]
-        c = ModbusClient(host=ip_adr, port=501, unit_id=1, auto_open=True)
+        c = ModbusClient(host=ip_adr, port=502, unit_id=1, auto_open=True)
         if c.open():
             print('Modbus client succesfully connected')
         else:
