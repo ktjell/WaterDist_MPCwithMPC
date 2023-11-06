@@ -44,10 +44,12 @@ class modbus(Thread):
 ## Prepare to receive data:
 pnr, rec_q = setup_com('local_ctr', ['cloud', 'simulator'], 'ip addr show eth0')
 
+modb = modbus(pnr)
+modb.start()
+
 
 #Initialize and run the local controller
 ctr = loc_ctr(pnr, rec_q)
 ctr.start()
 
-modb = modbus(pnr)
-modb.start()
+
